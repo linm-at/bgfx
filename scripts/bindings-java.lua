@@ -462,12 +462,37 @@ for _, v in ipairs(combined) do
 	combined[v] = {}
 end
 
+local function camelcase_to_underscorecase(name)
+	local words = {}
+	for word in name:gmatch("[%u%d]+%l*") do
+		table.insert(words, word:lower())
+	end
+	return table.concat(words, "_")
+end
+
+local function enum_constant_name(typ, item)
+	local name = item.cname
+	if not name then
+		name = typ.underscore and camelcase_to_underscorecase(item.name) or item.name
+	end
+	return name:upper()
+end
+
 local function javadoc_text(line)
 	line = line or ""
 	line = line:gsub("&", "&amp;")
 	line = line:gsub("<", "&lt;")
 	line = line:gsub(">", "&gt;")
 	line = line:gsub("`([^`]*)`", "{@code %1}")
+	for _, typ in ipairs(idl.types) do
+		if typ.enum then
+			for _, item in ipairs(typ.enum) do
+				line = line:gsub(typ.typename .. "::" .. item.name,
+					typ.typename .. "." .. enum_constant_name(typ, item))
+			end
+			line = line:gsub(typ.typename .. "::Count", typ.typename .. ".COUNT")
+		end
+	end
 	line = line:gsub("bgfx::", "")
 	line = line:gsub("::", ".")
 	line = line:gsub("([%w_%.]+)%.Enum", "%1")
@@ -598,16 +623,17 @@ local function emit_enum(typ, root_indent)
 	emit_javadoc(typ.comments or { typ.typename .. " values." }, root_indent)
 	yield(root_indent .. "public enum " .. typ.typename .. " {")
 	for _, item in ipairs(typ.enum) do
+		local item_name = enum_constant_name(typ, item)
 		if item.comment then
 			emit_javadoc(item.comment, body_indent)
 		else
-			emit_javadoc({ typ.typename .. " value {@code " .. item.name .. "}." }, body_indent)
+			emit_javadoc({ typ.typename .. " value {@code " .. item_name .. "}." }, body_indent)
 		end
-		yield(body_indent .. item.name .. ",")
+		yield(body_indent .. item_name .. ",")
 	end
 	yield("")
 	emit_javadoc({ "Number of native enum values." }, body_indent)
-	yield(body_indent .. "Count;")
+	yield(body_indent .. "COUNT;")
 	yield("")
 	emit_javadoc({ "Native C enum layout." }, body_indent)
 	yield(body_indent .. "public static final ValueLayout.OfInt LAYOUT = ValueLayout.JAVA_INT;")
@@ -1332,7 +1358,7 @@ function gen.files()
 	end
 
 	local sections = { funcs = generate_function_section() }
-	files["Bgfx.java"] = (java_template:gsub("$(%l+)", sections))
+	files["BGFX.java"] = (java_template:gsub("$(%l+)", sections))
 	return files
 end
 
@@ -1357,22 +1383,31 @@ local function ensure_directory(path)
 end
 
 local function clear_generated_output(outputdir)
-	local normalized = outputdir:gsub("\\", "/"):gsub("/+$", "")
-	assert(normalized:match("io/github/bkaradzic/bgfx$"),
-		"Java output directory must end with io/github/bkaradzic/bgfx: " .. outputdir)
-
-	local separator = package.config:sub(1, 1)
-	local command
-	if separator == "\\" then
-		local escaped = outputdir:gsub("'", "''")
-		command = "powershell -NoProfile -Command \"Get-ChildItem -LiteralPath '"
-			.. escaped .. "' | Where-Object Name -ne 'util' | Remove-Item -Recurse -Force\""
-	else
-		command = 'find "' .. outputdir
-			.. '" -mindepth 1 -maxdepth 1 ! -name util -exec rm -rf -- {} +'
+	local function remove_file(filename)
+		local ok, err = os.remove(filename)
+		assert(ok, "Unable to remove generated Java file " .. filename .. ": " .. tostring(err))
 	end
-	local ok, _, code = os.execute(command)
-	assert(ok or code == 0, "Unable to clear generated Java output: " .. outputdir)
+
+	local function remove_directory(directory)
+		for _, filename in ipairs(os.matchfiles(directory .. "/*")) do
+			remove_file(filename)
+		end
+		for _, child in ipairs(os.matchdirs(directory .. "/*")) do
+			remove_directory(child)
+		end
+		os.rmdir(directory)
+		assert(not os.isdir(directory), "Unable to remove generated Java directory: " .. directory)
+	end
+
+	for _, filename in ipairs(os.matchfiles(outputdir .. "/*")) do
+		remove_file(filename)
+	end
+	for _, directory in ipairs(os.matchdirs(outputdir .. "/*")) do
+		local normalized = directory:gsub("\\", "/"):gsub("/+$", "")
+		if normalized:match("([^/]+)$") ~= "util" then
+			remove_directory(directory)
+		end
+	end
 end
 
 function gen.write(files, outputdir)

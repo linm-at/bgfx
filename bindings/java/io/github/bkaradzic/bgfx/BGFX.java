@@ -2340,7 +2340,7 @@ public final class BGFX {
 	/**
 	 * Set shader uniform parameter for view.
 	 * <p>
-	 * <strong>Attention:</strong> Uniform must be created with {@code UniformFreq.View} argument.
+	 * <strong>Attention:</strong> Uniform must be created with {@code UniformFreq.VIEW} argument.
 	 * @param _id View id.
 	 * @param _handle Uniform.
 	 * @param _value Pointer to uniform data.
@@ -2361,7 +2361,7 @@ public final class BGFX {
 	/**
 	 * Set shader uniform parameter for frame.
 	 * <p>
-	 * <strong>Attention:</strong> Uniform must be created with {@code UniformFreq.View} argument.
+	 * <strong>Attention:</strong> Uniform must be created with {@code UniformFreq.VIEW} argument.
 	 * @param _handle Uniform.
 	 * @param _value Pointer to uniform data.
 	 * @param _num Number of elements. Passing {@code UINT16_MAX} will use the _num passed on uniform creation.
@@ -2494,7 +2494,7 @@ public final class BGFX {
 	 * <strong>Attention:</strong> {@code renderFrame} is a blocking call. It waits for
 	 *   {@code frame} to be called from the API thread to process the frame.
 	 *   If a timeout value is passed, the call will return
-	 *   {@code RenderFrame.Timeout} even if {@code frame} has not been called.
+	 *   {@code RenderFrame.TIMEOUT} even if {@code frame} has not been called.
 	 *   A value of -1 (default) means wait indefinitely (up to
 	 *   {@code BGFX_CONFIG_API_SEMAPHORE_TIMEOUT}).
 	 * <p>

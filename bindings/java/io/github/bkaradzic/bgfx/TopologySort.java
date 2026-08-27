@@ -30,58 +30,58 @@ import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
  */
 public enum TopologySort {
 	/**
-	 * TopologySort value {@code DirectionFrontToBackMin}.
+	 * TopologySort value {@code DIRECTION_FRONT_TO_BACK_MIN}.
 	 */
-	DirectionFrontToBackMin,
+	DIRECTION_FRONT_TO_BACK_MIN,
 	/**
-	 * TopologySort value {@code DirectionFrontToBackAvg}.
+	 * TopologySort value {@code DIRECTION_FRONT_TO_BACK_AVG}.
 	 */
-	DirectionFrontToBackAvg,
+	DIRECTION_FRONT_TO_BACK_AVG,
 	/**
-	 * TopologySort value {@code DirectionFrontToBackMax}.
+	 * TopologySort value {@code DIRECTION_FRONT_TO_BACK_MAX}.
 	 */
-	DirectionFrontToBackMax,
+	DIRECTION_FRONT_TO_BACK_MAX,
 	/**
-	 * TopologySort value {@code DirectionBackToFrontMin}.
+	 * TopologySort value {@code DIRECTION_BACK_TO_FRONT_MIN}.
 	 */
-	DirectionBackToFrontMin,
+	DIRECTION_BACK_TO_FRONT_MIN,
 	/**
-	 * TopologySort value {@code DirectionBackToFrontAvg}.
+	 * TopologySort value {@code DIRECTION_BACK_TO_FRONT_AVG}.
 	 */
-	DirectionBackToFrontAvg,
+	DIRECTION_BACK_TO_FRONT_AVG,
 	/**
-	 * TopologySort value {@code DirectionBackToFrontMax}.
+	 * TopologySort value {@code DIRECTION_BACK_TO_FRONT_MAX}.
 	 */
-	DirectionBackToFrontMax,
+	DIRECTION_BACK_TO_FRONT_MAX,
 	/**
-	 * TopologySort value {@code DistanceFrontToBackMin}.
+	 * TopologySort value {@code DISTANCE_FRONT_TO_BACK_MIN}.
 	 */
-	DistanceFrontToBackMin,
+	DISTANCE_FRONT_TO_BACK_MIN,
 	/**
-	 * TopologySort value {@code DistanceFrontToBackAvg}.
+	 * TopologySort value {@code DISTANCE_FRONT_TO_BACK_AVG}.
 	 */
-	DistanceFrontToBackAvg,
+	DISTANCE_FRONT_TO_BACK_AVG,
 	/**
-	 * TopologySort value {@code DistanceFrontToBackMax}.
+	 * TopologySort value {@code DISTANCE_FRONT_TO_BACK_MAX}.
 	 */
-	DistanceFrontToBackMax,
+	DISTANCE_FRONT_TO_BACK_MAX,
 	/**
-	 * TopologySort value {@code DistanceBackToFrontMin}.
+	 * TopologySort value {@code DISTANCE_BACK_TO_FRONT_MIN}.
 	 */
-	DistanceBackToFrontMin,
+	DISTANCE_BACK_TO_FRONT_MIN,
 	/**
-	 * TopologySort value {@code DistanceBackToFrontAvg}.
+	 * TopologySort value {@code DISTANCE_BACK_TO_FRONT_AVG}.
 	 */
-	DistanceBackToFrontAvg,
+	DISTANCE_BACK_TO_FRONT_AVG,
 	/**
-	 * TopologySort value {@code DistanceBackToFrontMax}.
+	 * TopologySort value {@code DISTANCE_BACK_TO_FRONT_MAX}.
 	 */
-	DistanceBackToFrontMax,
+	DISTANCE_BACK_TO_FRONT_MAX,
 
 	/**
 	 * Number of native enum values.
 	 */
-	Count;
+	COUNT;
 
 	/**
 	 * Native C enum layout.

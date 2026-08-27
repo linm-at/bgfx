@@ -32,28 +32,28 @@ public enum TopologyConvert {
 	/**
 	 * Flip winding order of triangle list.
 	 */
-	TriListFlipWinding,
+	TRI_LIST_FLIP_WINDING,
 	/**
 	 * Flip winding order of triangle strip.
 	 */
-	TriStripFlipWinding,
+	TRI_STRIP_FLIP_WINDING,
 	/**
 	 * Convert triangle list to line list.
 	 */
-	TriListToLineList,
+	TRI_LIST_TO_LINE_LIST,
 	/**
 	 * Convert triangle strip to triangle list.
 	 */
-	TriStripToTriList,
+	TRI_STRIP_TO_TRI_LIST,
 	/**
 	 * Convert line strip to line list.
 	 */
-	LineStripToLineList,
+	LINE_STRIP_TO_LINE_LIST,
 
 	/**
 	 * Number of native enum values.
 	 */
-	Count;
+	COUNT;
 
 	/**
 	 * Native C enum layout.

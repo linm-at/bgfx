@@ -32,24 +32,24 @@ public enum RenderFrame {
 	/**
 	 * Renderer context is not created yet.
 	 */
-	NoContext,
+	NO_CONTEXT,
 	/**
 	 * Renderer context is created and rendering.
 	 */
-	Render,
+	RENDER,
 	/**
 	 * Renderer context wait for main thread signal timed out without rendering.
 	 */
-	Timeout,
+	TIMEOUT,
 	/**
 	 * Renderer context is getting destroyed.
 	 */
-	Exiting,
+	EXITING,
 
 	/**
 	 * Number of native enum values.
 	 */
-	Count;
+	COUNT;
 
 	/**
 	 * Native C enum layout.

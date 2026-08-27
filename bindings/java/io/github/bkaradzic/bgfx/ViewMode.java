@@ -32,24 +32,24 @@ public enum ViewMode {
 	/**
 	 * Default sort order.
 	 */
-	Default,
+	DEFAULT,
 	/**
 	 * Sort in the same order in which submit calls were called.
 	 */
-	Sequential,
+	SEQUENTIAL,
 	/**
 	 * Sort draw call depth in ascending order.
 	 */
-	DepthAscending,
+	DEPTH_ASCENDING,
 	/**
 	 * Sort draw call depth in descending order.
 	 */
-	DepthDescending,
+	DEPTH_DESCENDING,
 
 	/**
 	 * Number of native enum values.
 	 */
-	Count;
+	COUNT;
 
 	/**
 	 * Native C enum layout.

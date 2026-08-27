@@ -30,30 +30,30 @@ import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
  */
 public enum Fatal {
 	/**
-	 * Fatal value {@code DebugCheck}.
+	 * Fatal value {@code DEBUG_CHECK}.
 	 */
-	DebugCheck,
+	DEBUG_CHECK,
 	/**
-	 * Fatal value {@code InvalidShader}.
+	 * Fatal value {@code INVALID_SHADER}.
 	 */
-	InvalidShader,
+	INVALID_SHADER,
 	/**
-	 * Fatal value {@code UnableToInitialize}.
+	 * Fatal value {@code UNABLE_TO_INITIALIZE}.
 	 */
-	UnableToInitialize,
+	UNABLE_TO_INITIALIZE,
 	/**
-	 * Fatal value {@code UnableToCreateTexture}.
+	 * Fatal value {@code UNABLE_TO_CREATE_TEXTURE}.
 	 */
-	UnableToCreateTexture,
+	UNABLE_TO_CREATE_TEXTURE,
 	/**
-	 * Fatal value {@code DeviceLost}.
+	 * Fatal value {@code DEVICE_LOST}.
 	 */
-	DeviceLost,
+	DEVICE_LOST,
 
 	/**
 	 * Number of native enum values.
 	 */
-	Count;
+	COUNT;
 
 	/**
 	 * Native C enum layout.

@@ -32,16 +32,16 @@ public enum NativeWindowHandleType {
 	/**
 	 * Platform default handle type (X11 on Linux).
 	 */
-	Default,
+	DEFAULT,
 	/**
 	 * Wayland.
 	 */
-	Wayland,
+	WAYLAND,
 
 	/**
 	 * Number of native enum values.
 	 */
-	Count;
+	COUNT;
 
 	/**
 	 * Native C enum layout.

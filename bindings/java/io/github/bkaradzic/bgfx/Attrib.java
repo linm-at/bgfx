@@ -32,112 +32,112 @@ public enum Attrib {
 	/**
 	 * a_position
 	 */
-	Position,
+	POSITION,
 	/**
 	 * a_normal
 	 */
-	Normal,
+	NORMAL,
 	/**
 	 * a_tangent
 	 */
-	Tangent,
+	TANGENT,
 	/**
 	 * a_bitangent
 	 */
-	Bitangent,
+	BITANGENT,
 	/**
 	 * a_color0
 	 */
-	Color0,
+	COLOR0,
 	/**
 	 * a_color1
 	 */
-	Color1,
+	COLOR1,
 	/**
 	 * a_color2
 	 */
-	Color2,
+	COLOR2,
 	/**
 	 * a_color3
 	 */
-	Color3,
+	COLOR3,
 	/**
 	 * a_indices
 	 */
-	Indices,
+	INDICES,
 	/**
 	 * a_weight
 	 */
-	Weight,
+	WEIGHT,
 	/**
 	 * a_texcoord0
 	 */
-	TexCoord0,
+	TEXCOORD0,
 	/**
 	 * a_texcoord1
 	 */
-	TexCoord1,
+	TEXCOORD1,
 	/**
 	 * a_texcoord2
 	 */
-	TexCoord2,
+	TEXCOORD2,
 	/**
 	 * a_texcoord3
 	 */
-	TexCoord3,
+	TEXCOORD3,
 	/**
 	 * a_texcoord4
 	 */
-	TexCoord4,
+	TEXCOORD4,
 	/**
 	 * a_texcoord5
 	 */
-	TexCoord5,
+	TEXCOORD5,
 	/**
 	 * a_texcoord6
 	 */
-	TexCoord6,
+	TEXCOORD6,
 	/**
 	 * a_texcoord7
 	 */
-	TexCoord7,
+	TEXCOORD7,
 	/**
 	 * a_texcoord8
 	 */
-	TexCoord8,
+	TEXCOORD8,
 	/**
 	 * a_texcoord9
 	 */
-	TexCoord9,
+	TEXCOORD9,
 	/**
 	 * a_texcoord10
 	 */
-	TexCoord10,
+	TEXCOORD10,
 	/**
 	 * a_texcoord11
 	 */
-	TexCoord11,
+	TEXCOORD11,
 	/**
 	 * a_texcoord12
 	 */
-	TexCoord12,
+	TEXCOORD12,
 	/**
 	 * a_texcoord13
 	 */
-	TexCoord13,
+	TEXCOORD13,
 	/**
 	 * a_texcoord14
 	 */
-	TexCoord14,
+	TEXCOORD14,
 	/**
 	 * a_texcoord15
 	 */
-	TexCoord15,
+	TEXCOORD15,
 
 	/**
 	 * Number of native enum values.
 	 */
-	Count;
+	COUNT;
 
 	/**
 	 * Native C enum layout.

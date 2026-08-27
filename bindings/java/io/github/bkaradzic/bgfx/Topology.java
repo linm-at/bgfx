@@ -32,28 +32,28 @@ public enum Topology {
 	/**
 	 * Triangle list.
 	 */
-	TriList,
+	TRI_LIST,
 	/**
 	 * Triangle strip.
 	 */
-	TriStrip,
+	TRI_STRIP,
 	/**
 	 * Line list.
 	 */
-	LineList,
+	LINE_LIST,
 	/**
 	 * Line strip.
 	 */
-	LineStrip,
+	LINE_STRIP,
 	/**
 	 * Point list.
 	 */
-	PointList,
+	POINT_LIST,
 
 	/**
 	 * Number of native enum values.
 	 */
-	Count;
+	COUNT;
 
 	/**
 	 * Native C enum layout.

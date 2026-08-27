@@ -32,44 +32,44 @@ public enum AttribType {
 	/**
 	 * Int8
 	 */
-	Int8,
+	INT8,
 	/**
 	 * Uint8
 	 */
-	Uint8,
+	UINT8,
 	/**
 	 * Uint10, availability depends on: {@code BGFX_CAPS_VERTEX_ATTRIB_UINT10}.
 	 */
-	Uint10,
+	UINT10,
 	/**
 	 * Int16
 	 */
-	Int16,
+	INT16,
 	/**
 	 * Uint16
 	 */
-	Uint16,
+	UINT16,
 	/**
 	 * Half, availability depends on: {@code BGFX_CAPS_VERTEX_ATTRIB_HALF}.
 	 */
-	Half,
+	HALF,
 	/**
 	 * Float
 	 */
-	Float,
+	FLOAT,
 	/**
 	 * Int32
 	 */
-	Int32,
+	INT32,
 	/**
 	 * Uint32
 	 */
-	Uint32,
+	UINT32,
 
 	/**
 	 * Number of native enum values.
 	 */
-	Count;
+	COUNT;
 
 	/**
 	 * Native C enum layout.

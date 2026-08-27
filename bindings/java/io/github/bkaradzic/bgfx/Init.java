@@ -89,7 +89,7 @@ public final class Init extends NativeObject {
 	}
 
 	/**
-	 * Select rendering backend. When set to RendererType.Count
+	 * Select rendering backend. When set to RendererType.COUNT
 	 * a default rendering backend will be selected appropriate to the platform.
 	 * See: {@code RendererType}
 	 * @return the field value

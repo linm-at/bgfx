@@ -32,20 +32,20 @@ public enum Access {
 	/**
 	 * Read.
 	 */
-	Read,
+	READ,
 	/**
 	 * Write.
 	 */
-	Write,
+	WRITE,
 	/**
 	 * Read and write.
 	 */
-	ReadWrite,
+	READWRITE,
 
 	/**
 	 * Number of native enum values.
 	 */
-	Count;
+	COUNT;
 
 	/**
 	 * Native C enum layout.

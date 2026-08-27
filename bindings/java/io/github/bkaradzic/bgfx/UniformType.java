@@ -32,28 +32,28 @@ public enum UniformType {
 	/**
 	 * Sampler.
 	 */
-	Sampler,
+	SAMPLER,
 	/**
 	 * Reserved, do not use.
 	 */
-	End,
+	END,
 	/**
 	 * 4 floats vector.
 	 */
-	Vec4,
+	VEC4,
 	/**
 	 * 3x3 matrix.
 	 */
-	Mat3,
+	MAT3,
 	/**
 	 * 4x4 matrix.
 	 */
-	Mat4,
+	MAT4,
 
 	/**
 	 * Number of native enum values.
 	 */
-	Count;
+	COUNT;
 
 	/**
 	 * Native C enum layout.

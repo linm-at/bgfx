@@ -32,36 +32,36 @@ public enum ShadingRate {
 	/**
 	 * 1x1
 	 */
-	Rate1x1,
+	RATE_1X_1,
 	/**
 	 * 1x2
 	 */
-	Rate1x2,
+	RATE_1X_2,
 	/**
 	 * 2x1
 	 */
-	Rate2x1,
+	RATE_2X_1,
 	/**
 	 * 2x2
 	 */
-	Rate2x2,
+	RATE_2X_2,
 	/**
 	 * 2x4
 	 */
-	Rate2x4,
+	RATE_2X_4,
 	/**
 	 * 4x2
 	 */
-	Rate4x2,
+	RATE_4X_2,
 	/**
 	 * 4x4
 	 */
-	Rate4x4,
+	RATE_4X_4,
 
 	/**
 	 * Number of native enum values.
 	 */
-	Count;
+	COUNT;
 
 	/**
 	 * Native C enum layout.

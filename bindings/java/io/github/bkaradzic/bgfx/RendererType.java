@@ -32,52 +32,52 @@ public enum RendererType {
 	/**
 	 * No rendering.
 	 */
-	Noop,
+	NOOP,
 	/**
 	 * AGC
 	 */
-	Agc,
+	AGC,
 	/**
 	 * Direct3D 11.0
 	 */
-	Direct3D11,
+	DIRECT3D11,
 	/**
 	 * Direct3D 12.0
 	 */
-	Direct3D12,
+	DIRECT3D12,
 	/**
 	 * GNM
 	 */
-	Gnm,
+	GNM,
 	/**
 	 * Metal
 	 */
-	Metal,
+	METAL,
 	/**
 	 * NVN
 	 */
-	Nvn,
+	NVN,
 	/**
 	 * OpenGL ES 3.0+
 	 */
-	OpenGLES,
+	OPENGLES,
 	/**
 	 * OpenGL 4.3+
 	 */
-	OpenGL,
+	OPENGL,
 	/**
 	 * Vulkan
 	 */
-	Vulkan,
+	VULKAN,
 	/**
 	 * WebGPU
 	 */
-	WebGPU,
+	WEBGPU,
 
 	/**
 	 * Number of native enum values.
 	 */
-	Count;
+	COUNT;
 
 	/**
 	 * Native C enum layout.

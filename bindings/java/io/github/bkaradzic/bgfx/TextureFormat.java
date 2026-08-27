@@ -154,63 +154,63 @@ public enum TextureFormat {
 	/**
 	 * Adaptive Scalable Texture Compression, 4x4 block, RGBA. 8.00 BPP.
 	 */
-	ASTC4x4,
+	ASTC4X4,
 	/**
 	 * Adaptive Scalable Texture Compression, 5x4 block, RGBA. 6.40 BPP.
 	 */
-	ASTC5x4,
+	ASTC5X4,
 	/**
 	 * Adaptive Scalable Texture Compression, 5x5 block, RGBA. 5.12 BPP.
 	 */
-	ASTC5x5,
+	ASTC5X5,
 	/**
 	 * Adaptive Scalable Texture Compression, 6x5 block, RGBA. 4.27 BPP.
 	 */
-	ASTC6x5,
+	ASTC6X5,
 	/**
 	 * Adaptive Scalable Texture Compression, 6x6 block, RGBA. 3.56 BPP.
 	 */
-	ASTC6x6,
+	ASTC6X6,
 	/**
 	 * Adaptive Scalable Texture Compression, 8x5 block, RGBA. 3.20 BPP.
 	 */
-	ASTC8x5,
+	ASTC8X5,
 	/**
 	 * Adaptive Scalable Texture Compression, 8x6 block, RGBA. 2.67 BPP.
 	 */
-	ASTC8x6,
+	ASTC8X6,
 	/**
 	 * Adaptive Scalable Texture Compression, 8x8 block, RGBA. 2.00 BPP.
 	 */
-	ASTC8x8,
+	ASTC8X8,
 	/**
 	 * Adaptive Scalable Texture Compression, 10x5 block, RGBA. 2.56 BPP.
 	 */
-	ASTC10x5,
+	ASTC10X5,
 	/**
 	 * Adaptive Scalable Texture Compression, 10x6 block, RGBA. 2.13 BPP.
 	 */
-	ASTC10x6,
+	ASTC10X6,
 	/**
 	 * Adaptive Scalable Texture Compression, 10x8 block, RGBA. 1.60 BPP.
 	 */
-	ASTC10x8,
+	ASTC10X8,
 	/**
 	 * Adaptive Scalable Texture Compression, 10x10 block, RGBA. 1.28 BPP.
 	 */
-	ASTC10x10,
+	ASTC10X10,
 	/**
 	 * Adaptive Scalable Texture Compression, 12x10 block, RGBA. 1.07 BPP.
 	 */
-	ASTC12x10,
+	ASTC12X10,
 	/**
 	 * Adaptive Scalable Texture Compression, 12x12 block, RGBA. 0.89 BPP.
 	 */
-	ASTC12x12,
+	ASTC12X12,
 	/**
 	 * Compressed formats above.
 	 */
-	Unknown,
+	UNKNOWN,
 	/**
 	 * 1-bit single-channel red. Monochrome, 1-bit per pixel. 1 BPP.
 	 */
@@ -426,7 +426,7 @@ public enum TextureFormat {
 	/**
 	 * Depth formats below.
 	 */
-	UnknownDepth,
+	UNKNOWNDEPTH,
 	/**
 	 * 16-bit depth, unsigned normalized. 16 BPP.
 	 */
@@ -467,7 +467,7 @@ public enum TextureFormat {
 	/**
 	 * Number of native enum values.
 	 */
-	Count;
+	COUNT;
 
 	/**
 	 * Native C enum layout.

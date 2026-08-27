@@ -32,32 +32,32 @@ public enum BackbufferRatio {
 	/**
 	 * Equal to backbuffer.
 	 */
-	Equal,
+	EQUAL,
 	/**
 	 * One half size of backbuffer.
 	 */
-	Half,
+	HALF,
 	/**
 	 * One quarter size of backbuffer.
 	 */
-	Quarter,
+	QUARTER,
 	/**
 	 * One eighth size of backbuffer.
 	 */
-	Eighth,
+	EIGHTH,
 	/**
 	 * One sixteenth size of backbuffer.
 	 */
-	Sixteenth,
+	SIXTEENTH,
 	/**
 	 * Double size of backbuffer.
 	 */
-	Double,
+	DOUBLE,
 
 	/**
 	 * Number of native enum values.
 	 */
-	Count;
+	COUNT;
 
 	/**
 	 * Native C enum layout.

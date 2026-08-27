@@ -32,20 +32,20 @@ public enum UniformFreq {
 	/**
 	 * Changing per draw call.
 	 */
-	Draw,
+	DRAW,
 	/**
 	 * Changing per view.
 	 */
-	View,
+	VIEW,
 	/**
 	 * Changing per frame.
 	 */
-	Frame,
+	FRAME,
 
 	/**
 	 * Number of native enum values.
 	 */
-	Count;
+	COUNT;
 
 	/**
 	 * Native C enum layout.

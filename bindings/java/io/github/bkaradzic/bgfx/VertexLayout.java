@@ -129,8 +129,8 @@ public final class VertexLayout extends NativeObject {
 	 * @param _attrib Attribute semantics. See: {@code Attrib}
 	 * @param _num Number of elements 1, 2, 3 or 4.
 	 * @param _type Element type.
-	 * @param _normalized When using fixed point AttribType (f.e. Uint8) value will be normalized for vertex shader usage. When normalized is set to true, AttribType.Uint8 value in range 0-255 will be in range 0.0-1.0 in vertex shader.
-	 * @param _asInt Packaging rule for vertexPack, vertexUnpack, and vertexConvert for AttribType.Uint8 and AttribType.Int16. Unpacking code must be implemented inside vertex shader.
+	 * @param _normalized When using fixed point AttribType (f.e. Uint8) value will be normalized for vertex shader usage. When normalized is set to true, AttribType.UINT8 value in range 0-255 will be in range 0.0-1.0 in vertex shader.
+	 * @param _asInt Packaging rule for vertexPack, vertexUnpack, and vertexConvert for AttribType.UINT8 and AttribType.INT16. Unpacking code must be implemented inside vertex shader.
 	 * @return Returns itself.
 	 */
 	public final VertexLayout add(Attrib _attrib, byte _num, AttribType _type, boolean _normalized, boolean _asInt) {

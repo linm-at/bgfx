@@ -45,7 +45,7 @@ public enum VideoCodec {
 	/**
 	 * Number of native enum values.
 	 */
-	Count;
+	COUNT;
 
 	/**
 	 * Native C enum layout.

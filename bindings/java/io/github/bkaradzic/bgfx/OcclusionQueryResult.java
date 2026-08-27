@@ -32,20 +32,20 @@ public enum OcclusionQueryResult {
 	/**
 	 * Query failed test.
 	 */
-	Invisible,
+	INVISIBLE,
 	/**
 	 * Query passed test.
 	 */
-	Visible,
+	VISIBLE,
 	/**
 	 * Query result is not available yet.
 	 */
-	NoResult,
+	NORESULT,
 
 	/**
 	 * Number of native enum values.
 	 */
-	Count;
+	COUNT;
 
 	/**
 	 * Native C enum layout.
