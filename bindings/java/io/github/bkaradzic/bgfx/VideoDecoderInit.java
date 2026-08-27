@@ -1,0 +1,173 @@
+// Copyright 2011-2026 Branimir Karadzic. All rights reserved.
+// License: https://github.com/bkaradzic/bgfx/blob/master/LICENSE
+
+
+//
+// AUTO GENERATED! DO NOT EDIT!
+//
+
+package io.github.bkaradzic.bgfx;
+
+import java.lang.foreign.Arena;
+import java.lang.foreign.FunctionDescriptor;
+import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.SegmentAllocator;
+import java.lang.foreign.StructLayout;
+import java.lang.foreign.ValueLayout;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodType;
+import java.lang.invoke.VarHandle;
+import java.util.Objects;
+
+import io.github.bkaradzic.bgfx.util.NativeObject;
+
+import static io.github.bkaradzic.bgfx.BGFX.*;
+import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
+
+/**
+ * Video decoder initialization. Serialized into the Memory passed to
+ * {@code createTexture2D}. When the memory blob begins with {@code magic}, bgfx
+ * infers the texture is a video decode destination (the caller need not set
+ * any extra texture flag). Everything else the renderer needs about the
+ * stream (chroma format, bit depth, profile, level, coded dimensions, DPB
+ * layout, color metadata) is parsed out of the codec parameter sets at
+ * create time.
+ */
+public final class VideoDecoderInit extends NativeObject {
+	/**
+	 * Native C structure layout.
+	 */
+	public static final StructLayout LAYOUT = cStruct("bgfx_video_decoder_init_t",
+		ValueLayout.JAVA_INT.withName("magic"),
+		ValueLayout.JAVA_INT.withName("codec"),
+		ValueLayout.ADDRESS.withName("parameterSets"),
+		ValueLayout.JAVA_INT.withName("parameterSetsSize"),
+		ValueLayout.JAVA_INT.withName("cachedAuBytes"),
+		ValueLayout.JAVA_BYTE.withName("flags"));
+	private static final VarHandle VH_MAGIC = LAYOUT.varHandle(
+		MemoryLayout.PathElement.groupElement("magic"));
+	private static final VarHandle VH_CODEC = LAYOUT.varHandle(
+		MemoryLayout.PathElement.groupElement("codec"));
+	private static final VarHandle VH_PARAMETERSETS = LAYOUT.varHandle(
+		MemoryLayout.PathElement.groupElement("parameterSets"));
+	private static final VarHandle VH_PARAMETERSETSSIZE = LAYOUT.varHandle(
+		MemoryLayout.PathElement.groupElement("parameterSetsSize"));
+	private static final VarHandle VH_CACHEDAUBYTES = LAYOUT.varHandle(
+		MemoryLayout.PathElement.groupElement("cachedAuBytes"));
+	private static final VarHandle VH_FLAGS = LAYOUT.varHandle(
+		MemoryLayout.PathElement.groupElement("flags"));
+	/**
+	 * Wraps an existing native structure.
+	 * @param segment native memory segment
+	 */
+	public VideoDecoderInit(MemorySegment segment) {
+		super(segment, LAYOUT);
+	}
+
+	/**
+	 * Allocates a native structure.
+	 * @param allocator destination allocator
+	 */
+	public VideoDecoderInit(SegmentAllocator allocator) {
+		super(allocator, LAYOUT);
+	}
+
+	/**
+	 * Structure magic. Must be {@code BX_MAKEFOURCC('V', 'D', 'I', 0x0)}.
+	 * @return the field value
+	 */
+	public int magic() {
+		return (int) VH_MAGIC.get(segment(), 0L);
+	}
+
+	/**
+	 * Sets the native {@code magic} field.
+	 * @param value the new field value
+	 */
+	public void magic(int value) {
+		VH_MAGIC.set(segment(), 0L, value);
+	}
+
+	/**
+	 * Video codec. See: {@code VideoCodec}.
+	 * @return the field value
+	 */
+	public VideoCodec codec() {
+		return VideoCodec.fromValue((int) VH_CODEC.get(segment(), 0L));
+	}
+
+	/**
+	 * Sets the native {@code codec} field.
+	 * @param value the new field value
+	 */
+	public void codec(VideoCodec value) {
+		VH_CODEC.set(segment(), 0L, value.ordinal());
+	}
+
+	/**
+	 * Codec parameter sets (Annex B for H.264/H.265, OBUs for AV1).
+	 * @return the field value
+	 */
+	public MemorySegment parameterSets() {
+		return (MemorySegment) VH_PARAMETERSETS.get(segment(), 0L);
+	}
+
+	/**
+	 * Sets the native {@code parameterSets} field.
+	 * @param value the new field value
+	 */
+	public void parameterSets(MemorySegment value) {
+		VH_PARAMETERSETS.set(segment(), 0L, address(value));
+	}
+
+	/**
+	 * Parameter sets size in bytes.
+	 * @return the field value
+	 */
+	public int parameterSetsSize() {
+		return (int) VH_PARAMETERSETSSIZE.get(segment(), 0L);
+	}
+
+	/**
+	 * Sets the native {@code parameterSetsSize} field.
+	 * @param value the new field value
+	 */
+	public void parameterSetsSize(int value) {
+		VH_PARAMETERSETSSIZE.set(segment(), 0L, value);
+	}
+
+	/**
+	 * Soft cap (in bytes) on the streaming access-unit FIFO (when
+	 * {@code BGFX_VIDEO_DECODER_INIT_RETAIN} is NOT set). 0 selects the
+	 * default. Ignored in RETAIN mode (the retain cache is unbounded).
+	 * @return the field value
+	 */
+	public int cachedAuBytes() {
+		return (int) VH_CACHEDAUBYTES.get(segment(), 0L);
+	}
+
+	/**
+	 * Sets the native {@code cachedAuBytes} field.
+	 * @param value the new field value
+	 */
+	public void cachedAuBytes(int value) {
+		VH_CACHEDAUBYTES.set(segment(), 0L, value);
+	}
+
+	/**
+	 * Decoder lifetime flags. See: {@code BGFX_VIDEO_DECODER_INIT_*}.
+	 * @return the field value
+	 */
+	public byte flags() {
+		return (byte) VH_FLAGS.get(segment(), 0L);
+	}
+
+	/**
+	 * Sets the native {@code flags} field.
+	 * @param value the new field value
+	 */
+	public void flags(byte value) {
+		VH_FLAGS.set(segment(), 0L, value);
+	}
+}

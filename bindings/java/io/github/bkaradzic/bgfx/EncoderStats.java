@@ -1,0 +1,89 @@
+// Copyright 2011-2026 Branimir Karadzic. All rights reserved.
+// License: https://github.com/bkaradzic/bgfx/blob/master/LICENSE
+
+
+//
+// AUTO GENERATED! DO NOT EDIT!
+//
+
+package io.github.bkaradzic.bgfx;
+
+import java.lang.foreign.Arena;
+import java.lang.foreign.FunctionDescriptor;
+import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.SegmentAllocator;
+import java.lang.foreign.StructLayout;
+import java.lang.foreign.ValueLayout;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodType;
+import java.lang.invoke.VarHandle;
+import java.util.Objects;
+
+import io.github.bkaradzic.bgfx.util.NativeObject;
+
+import static io.github.bkaradzic.bgfx.BGFX.*;
+import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
+
+/**
+ * Encoder stats.
+ */
+public final class EncoderStats extends NativeObject {
+	/**
+	 * Native C structure layout.
+	 */
+	public static final StructLayout LAYOUT = cStruct("bgfx_encoder_stats_t",
+		ValueLayout.JAVA_LONG.withName("cpuTimeBegin"),
+		ValueLayout.JAVA_LONG.withName("cpuTimeEnd"));
+	private static final VarHandle VH_CPUTIMEBEGIN = LAYOUT.varHandle(
+		MemoryLayout.PathElement.groupElement("cpuTimeBegin"));
+	private static final VarHandle VH_CPUTIMEEND = LAYOUT.varHandle(
+		MemoryLayout.PathElement.groupElement("cpuTimeEnd"));
+	/**
+	 * Wraps an existing native structure.
+	 * @param segment native memory segment
+	 */
+	public EncoderStats(MemorySegment segment) {
+		super(segment, LAYOUT);
+	}
+
+	/**
+	 * Allocates a native structure.
+	 * @param allocator destination allocator
+	 */
+	public EncoderStats(SegmentAllocator allocator) {
+		super(allocator, LAYOUT);
+	}
+
+	/**
+	 * Encoder thread CPU submit begin time.
+	 * @return the field value
+	 */
+	public long cpuTimeBegin() {
+		return (long) VH_CPUTIMEBEGIN.get(segment(), 0L);
+	}
+
+	/**
+	 * Sets the native {@code cpuTimeBegin} field.
+	 * @param value the new field value
+	 */
+	public void cpuTimeBegin(long value) {
+		VH_CPUTIMEBEGIN.set(segment(), 0L, value);
+	}
+
+	/**
+	 * Encoder thread CPU submit end time.
+	 * @return the field value
+	 */
+	public long cpuTimeEnd() {
+		return (long) VH_CPUTIMEEND.get(segment(), 0L);
+	}
+
+	/**
+	 * Sets the native {@code cpuTimeEnd} field.
+	 * @param value the new field value
+	 */
+	public void cpuTimeEnd(long value) {
+		VH_CPUTIMEEND.set(segment(), 0L, value);
+	}
+}

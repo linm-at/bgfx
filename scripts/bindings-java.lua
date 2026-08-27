@@ -1,7 +1,11 @@
 local codegen = require "codegen"
 local idl = codegen.idl "bgfx.idl"
 
-local java_template = [[
+-- TODO: Add JSpecify annoations/vendor JSpecify
+
+local java_package = "io.github.bkaradzic.bgfx"
+
+local java_header = [[
 // Copyright 2011-2026 Branimir Karadzic. All rights reserved.
 // License: https://github.com/bkaradzic/bgfx/blob/master/LICENSE
 
@@ -9,8 +13,11 @@ local java_template = [[
 //
 // AUTO GENERATED! DO NOT EDIT!
 //
+]]
 
-package io.github.bkaradzic.bgfx;
+local java_template = java_header .. [[
+
+package ]] .. java_package .. [[;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
@@ -22,13 +29,14 @@ import java.lang.foreign.StructLayout;
 import java.lang.foreign.SymbolLookup;
 import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
+
+import ]] .. java_package .. [[.util.FFMUtil;
+
+import static ]] .. java_package .. [[.util.FFMUtil.*;
 
 
 /**
@@ -40,9 +48,6 @@ import java.util.Objects;
 @SuppressWarnings("restricted")
 public final class BGFX {
 
-	private static final Linker LINKER = Linker.nativeLinker();
-	private static final ValueLayout C_UINTPTR_T =
-		(ValueLayout) LINKER.canonicalLayouts().get("size_t");
 	private static volatile MethodHandle[] downcalls;
 	private static volatile MemorySegment[] variadicSymbols;
 	private static Arena libraryArena;
@@ -120,16 +125,7 @@ public final class BGFX {
 		return LINKER.downcallHandle(symbol(lookup, name), descriptor);
 	}
 
-	private static MethodHandle upcallTarget(
-		Class<?> owner, String name, MethodType type) {
-		try {
-			return MethodHandles.lookup().findVirtual(owner, name, type);
-		} catch (NoSuchMethodException | IllegalAccessException ex) {
-			throw new ExceptionInInitializerError(ex);
-		}
-	}
-
-	private static MethodHandle downcallHandle(int index) {
+	static MethodHandle downcallHandle(int index) {
 		MethodHandle[] handles = downcalls;
 		if (handles == null) {
 			throw new IllegalStateException(
@@ -147,148 +143,8 @@ public final class BGFX {
 		return addresses[index];
 	}
 
-	private static Object invoke(int index, Object... args) {
-		return invoke(downcallHandle(index), args);
-	}
-
-	private static Object invoke(MethodHandle handle, Object... args) {
-		try {
-			return handle.invokeWithArguments(args);
-		} catch (Throwable ex) {
-			throw invocationFailure(ex);
-		}
-	}
-
-	private static RuntimeException invocationFailure(Throwable exception) {
-		if (exception instanceof RuntimeException runtime) {
-			return runtime;
-		}
-		if (exception instanceof Error error) {
-			throw error;
-		}
-		throw new AssertionError("Unexpected native invocation failure", exception);
-	}
-
-	private static MemorySegment slice(MethodHandle handle, MemorySegment segment) {
-		try {
-			return (MemorySegment) handle.invokeExact(segment, 0L);
-		} catch (RuntimeException | Error ex) {
-			throw ex;
-		} catch (Throwable ex) {
-			throw new AssertionError("Unexpected layout slice failure", ex);
-		}
-	}
-
-	private static StructLayout cStruct(String name, MemoryLayout... members) {
-		List<MemoryLayout> elements = new ArrayList<>();
-		long offset = 0;
-		long alignment = 1;
-		for (MemoryLayout member : members) {
-			long memberAlignment = member.byteAlignment();
-			long padding = (memberAlignment - offset % memberAlignment) % memberAlignment;
-			if (padding != 0) {
-				elements.add(MemoryLayout.paddingLayout(padding));
-				offset += padding;
-			}
-			elements.add(member);
-			offset += member.byteSize();
-			alignment = Math.max(alignment, memberAlignment);
-		}
-		long padding = (alignment - offset % alignment) % alignment;
-		if (padding != 0) {
-			elements.add(MemoryLayout.paddingLayout(padding));
-		}
-		return MemoryLayout.structLayout(elements.toArray(MemoryLayout[]::new))
-			.withByteAlignment(alignment)
-			.withName(name);
-	}
-
-	private static MemorySegment view(MemorySegment segment, MemoryLayout layout) {
-		Objects.requireNonNull(segment, "segment");
-		if (segment.address() == 0) {
-			return MemorySegment.NULL;
-		}
-		if (segment.byteSize() == 0) {
-			return segment.reinterpret(layout.byteSize());
-		}
-		if (segment.byteSize() < layout.byteSize()) {
-			throw new IllegalArgumentException("Segment is smaller than " + layout);
-		}
-		return segment.asSlice(0, layout.byteSize());
-	}
-
-	private static MemorySegment address(MemorySegment segment) {
-		return segment == null ? MemorySegment.NULL : segment;
-	}
-
-	private static MemorySegment address(NativeObject object) {
-		return object == null ? MemorySegment.NULL : object.segment();
-	}
-
-	private static MemorySegment cString(SegmentAllocator allocator, String value) {
-		return value == null ? MemorySegment.NULL : allocator.allocateFrom(value);
-	}
-
-	private static String readString(MemorySegment address) {
-		return address.address() == 0 ? null : address.reinterpret(Long.MAX_VALUE).getString(0);
-	}
-
-	private static Object nativeUintptr(long value) {
-		if (C_UINTPTR_T.carrier() == long.class) {
-			return value;
-		}
-		return (int) value;
-	}
-
-	private static long javaUintptr(Object value) {
-		return value instanceof Long val ? val : Integer.toUnsignedLong((Integer) value);
-	}
-
-	/** Base class for native-backed bgfx structures and opaque objects. */
-	public static abstract class NativeObject {
-		private final MemorySegment segment;
-
-		/**
-		 * Wraps an opaque native address or an already-sized segment.
-		 * @param segment native memory segment
-		 */
-		protected NativeObject(MemorySegment segment) {
-			this.segment = Objects.requireNonNull(segment, "segment");
-		}
-
-		/**
-		 * Wraps a native segment using the supplied structure layout.
-		 * @param segment native memory segment
-		 * @param layout native structure layout
-		 */
-		protected NativeObject(MemorySegment segment, MemoryLayout layout) {
-			this(view(segment, layout));
-		}
-
-		/**
-		 * Allocates a native structure using the supplied allocator.
-		 * @param allocator destination allocator
-		 * @param layout native structure layout
-		 */
-		protected NativeObject(SegmentAllocator allocator, MemoryLayout layout) {
-			this(Objects.requireNonNull(allocator, "allocator").allocate(layout), layout);
-		}
-
-		/**
-		 * Returns the wrapped native memory segment.
-		 * @return the wrapped native memory segment
-		 */
-		public final MemorySegment segment() {
-			return segment;
-		}
-
-		/**
-		 * Reports whether this object wraps the null address.
-		 * @return whether this object wraps the null address
-		 */
-		public final boolean isNull() {
-			return segment().address() == 0;
-		}
+	static Object invoke(int index, Object... args) {
+		return FFMUtil.invoke(downcallHandle(index), args);
 	}
 
 	/**
@@ -350,13 +206,6 @@ public final class BGFX {
 		}
 	}
 
-
-	// -------------------------------------------------------------------------
-	// Generated API types. This is a deliberate output boundary so these types
-	// can be emitted as separate source files without changing their emitters.
-	// -------------------------------------------------------------------------
-$types
-
 	// -------------------------------------------------------------------------
 	// Generated native entry points. Descriptors and methods intentionally live
 	// in this section rather than in per-function holder classes.
@@ -406,7 +255,7 @@ local function java_type_name(typ)
 	if typ.enum then
 		return typ.typename
 	elseif typ.namespace then
-		return typ.namespace .. "." .. typ.name
+		return java_package .. "." .. typ.namespace:lower() .. "." .. typ.name
 	else
 		return typ.name:gsub("::Enum$", "")
 	end
@@ -541,8 +390,6 @@ local yield = coroutine.yield
 local gen = {}
 
 local combined
-local lastCombinedFlag
-local namespace
 local downcall_entries
 local variadic_entries
 local emit_downcall_table
@@ -551,8 +398,6 @@ local function reset_generator_state()
 	for _, name in ipairs(combined) do
 		combined[name] = {}
 	end
-	lastCombinedFlag = nil
-	namespace = ""
 	downcall_entries = {}
 	variadic_entries = {}
 end
@@ -573,57 +418,42 @@ local function collect_methods()
 	return methods
 end
 
-local function generate_section(what, methods)
+local function generate_object(what, object, funcs)
 	local tmp = {}
-	for _, object in ipairs(idl[what]) do
-		local co = coroutine.create(converter[what])
-		local any
-		-- we're pretty confident there are no types that have the same name with a func
-		local funcs = methods[object.cname]
-		while true do
-			local ok, v = coroutine.resume(co, {
-				obj = object,
-				funcs = funcs
-			})
-			assert(ok, debug.traceback(co, v))
-			if not v then
-				break
-			end
-			table.insert(tmp, v)
-			any = true
+	local co = coroutine.create(converter[what])
+	while true do
+		local ok, value = coroutine.resume(co, {
+			obj = object,
+			funcs = funcs,
+			topLevel = what == "types",
+		})
+		assert(ok, debug.traceback(co, value))
+		if not value then
+			break
 		end
-		if any and tmp[#tmp] ~= "" then
-			table.insert(tmp, "")
-		end
-	end
-	if what == "funcs" then
-		local co = coroutine.create(emit_downcall_table)
-		while true do
-			local ok, value = coroutine.resume(co)
-			assert(ok, debug.traceback(co, value))
-			if not value then
-				break
-			end
-			table.insert(tmp, value)
-		end
+		table.insert(tmp, value)
 	end
 	return table.concat(tmp, "\n")
 end
 
--- Kept as independently generated sections so a future multi-file backend can
--- reuse the emitters without parsing a monolithic Java source file.
-function gen.sections()
-	reset_generator_state()
-	local methods = collect_methods()
-	return {
-		types = generate_section("types", methods),
-		funcs = generate_section("funcs", methods),
-	}
-end
-
-function gen.gen()
-	local sections = gen.sections()
-	return (java_template:gsub("$(%l+)", sections))
+local function generate_function_section()
+	local tmp = {}
+	for _, object in ipairs(idl.funcs) do
+		local body = generate_object("funcs", object)
+		if body ~= "" then
+			table.insert(tmp, body)
+		end
+	end
+	local co = coroutine.create(emit_downcall_table)
+	while true do
+		local ok, value = coroutine.resume(co)
+		assert(ok, debug.traceback(co, value))
+		if not value then
+			break
+		end
+		table.insert(tmp, value)
+	end
+	return table.concat(tmp, "\n")
 end
 
 combined = { "State", "Stencil", "Buffer", "Texture", "Sampler", "Reset" }
@@ -638,7 +468,7 @@ local function javadoc_text(line)
 	line = line:gsub("<", "&lt;")
 	line = line:gsub(">", "&gt;")
 	line = line:gsub("`([^`]*)`", "{@code %1}")
-	line = line:gsub("bgfx::", "BGFX.")
+	line = line:gsub("bgfx::", "")
 	line = line:gsub("::", ".")
 	line = line:gsub("([%w_%.]+)%.Enum", "%1")
 	line = line:gsub("%*/", "*&#47;")
@@ -680,7 +510,9 @@ local function emit_javadoc(lines, doc_indent, params, returns)
 	yield(doc_indent .. " */")
 end
 
-local function FlagBlock(typ)
+local function FlagBlock(typ, root_indent)
+	root_indent = root_indent or ""
+	local body_indent = root_indent .. "\t"
 	local format = "0x%08x"
 	local enumType = "int"
 	if typ.bits == 64 then
@@ -692,10 +524,10 @@ local function FlagBlock(typ)
 	end
 
 	local name = typ.name .. "Flags"
-	emit_javadoc(typ.comments or { "Constants for " .. typ.name .. " flags." }, "\t")
-	yield("\tpublic static final class " .. name .. " {")
-	yield("\t\tprivate " .. name .. "() {")
-	yield("\t\t}")
+	emit_javadoc(typ.comments or { "Constants for " .. typ.name .. " flags." }, root_indent)
+	yield(root_indent .. "public final class " .. name .. " {")
+	yield(body_indent .. "private " .. name .. "() {")
+	yield(body_indent .. "}")
 
 	for idx, flag in ipairs(typ.flag) do
 		local flagName = flag.name:gsub("_", "")
@@ -706,37 +538,26 @@ local function FlagBlock(typ)
 				yield("")
 			end
 			
-			emit_javadoc(flag.comment, "\t\t")
+			emit_javadoc(flag.comment, body_indent)
 		else
 			yield("")
-			emit_javadoc({ typ.name .. " flag value {@code " .. flagName .. "}." }, "\t\t")
+			emit_javadoc({ typ.name .. " flag value {@code " .. flagName .. "}." }, body_indent)
 		end
-		yield("\t\tpublic static final " .. enumType .. " " .. flagName .. " = " .. string.format(flag.format or format, flag.value) .. ";")
+		yield(body_indent .. "public static final " .. enumType .. " " .. flagName .. " = " .. string.format(flag.format or format, flag.value) .. ";")
 	end
 
 	if typ.shift then
-		emit_javadoc({ "Bit shift for this flag group." }, "\t\t")
-		yield("\t\tpublic static final " .. enumType .. " Shift = " .. typ.shift .. ";")
+		emit_javadoc({ "Bit shift for this flag group." }, body_indent)
+		yield(body_indent .. "public static final " .. enumType .. " Shift = " .. typ.shift .. ";")
 	end
 
 	-- generate Mask
 	if typ.mask then
-		emit_javadoc({ "Bit mask for this flag group." }, "\t\t")
-		yield("\t\tpublic static final " .. enumType .. " Mask = " .. string.format(format, typ.mask) .. ";")
+		emit_javadoc({ "Bit mask for this flag group." }, body_indent)
+		yield(body_indent .. "public static final " .. enumType .. " Mask = " .. string.format(format, typ.mask) .. ";")
 	end
 
-	yield("\t}")
-end
-
-local function lastCombinedFlagBlock()
-	if lastCombinedFlag then
-		local typ = combined[lastCombinedFlag]
-		if typ then
-			FlagBlock(combined[lastCombinedFlag])
-			yield("")
-		end
-		lastCombinedFlag = nil
-	end
+	yield(root_indent .. "}")
 end
 
 local function should_emit_function(func)
@@ -771,113 +592,117 @@ local function emit_comments(func, func_indent)
 	emit_javadoc(func.comments or { "Calls {@code bgfx_" .. func.cname .. "}." }, func_indent, params, returns)
 end
 
-local function emit_enum(typ)
-	emit_javadoc(typ.comments or { typ.typename .. " values." }, "\t")
-	yield("\tpublic enum " .. typ.typename .. " {")
+local function emit_enum(typ, root_indent)
+	root_indent = root_indent or ""
+	local body_indent = root_indent .. "\t"
+	emit_javadoc(typ.comments or { typ.typename .. " values." }, root_indent)
+	yield(root_indent .. "public enum " .. typ.typename .. " {")
 	for _, item in ipairs(typ.enum) do
 		if item.comment then
-			emit_javadoc(item.comment, "\t\t")
+			emit_javadoc(item.comment, body_indent)
 		else
-			emit_javadoc({ typ.typename .. " value {@code " .. item.name .. "}." }, "\t\t")
+			emit_javadoc({ typ.typename .. " value {@code " .. item.name .. "}." }, body_indent)
 		end
-		yield("\t\t" .. item.name .. ",")
+		yield(body_indent .. item.name .. ",")
 	end
 	yield("")
-	emit_javadoc({ "Number of native enum values." }, "\t\t")
-	yield("\t\tCount;")
+	emit_javadoc({ "Number of native enum values." }, body_indent)
+	yield(body_indent .. "Count;")
 	yield("")
-	emit_javadoc({ "Native C enum layout." }, "\t\t")
-	yield("\t\tpublic static final ValueLayout.OfInt LAYOUT = ValueLayout.JAVA_INT;")
-	yield("\t\tprivate static final " .. typ.typename .. "[] VALUES = values();")
+	emit_javadoc({ "Native C enum layout." }, body_indent)
+	yield(body_indent .. "public static final ValueLayout.OfInt LAYOUT = ValueLayout.JAVA_INT;")
+	yield(body_indent .. "private static final " .. typ.typename .. "[] VALUES = values();")
 	yield("")
-	emit_javadoc({ "Returns the enum constant for a native C enum value." }, "\t\t",
+	emit_javadoc({ "Returns the enum constant for a native C enum value." }, body_indent,
 		{ { name = "value", text = "the native enum value" } }, "the matching enum constant")
-	yield("\t\tpublic static " .. typ.typename .. " fromValue(int value) {")
-	yield("\t\t\tif (value >= 0 && value < VALUES.length) {")
-	yield("\t\t\t\treturn VALUES[value];")
-	yield("\t\t\t}")
-	yield("\t\t\tthrow new IllegalArgumentException(\"Unknown " .. typ.typename .. " value: \" + value);")
-	yield("\t\t}")
-	yield("\t}")
+	yield(body_indent .. "public static " .. typ.typename .. " fromValue(int value) {")
+	yield(body_indent .. "\tif (value >= 0 && value < VALUES.length) {")
+	yield(body_indent .. "\t\treturn VALUES[value];")
+	yield(body_indent .. "\t}")
+	yield(body_indent .. "\tthrow new IllegalArgumentException(\"Unknown " .. typ.typename .. " value: \" + value);")
+	yield(body_indent .. "}")
+	yield(root_indent .. "}")
 end
 
-local function emit_handle(typ)
+local function emit_handle(typ, root_indent)
+	root_indent = root_indent or ""
+	local body_indent = root_indent .. "\t"
 	local tagged = typ.tagged ~= nil
 	local fields = tagged and "short idx, short type" or "short idx"
 	local record_params = { { name = "idx", text = "native handle index" } }
 	if tagged then
 		table.insert(record_params, { name = "type", text = "native buffer handle tag" })
 	end
-	emit_javadoc(typ.comments or { "Native bgfx handle." }, "\t", record_params)
-	yield("\tpublic record " .. typ.name .. "(" .. fields .. ") {")
-	emit_javadoc({ "Native by-value handle layout." }, "\t\t")
-	yield("\t\tpublic static final StructLayout LAYOUT = cStruct(\"" .. typ.cname .. "\",")
+	emit_javadoc(typ.comments or { "Native bgfx handle." }, root_indent, record_params)
+	yield(root_indent .. "public record " .. typ.name .. "(" .. fields .. ") {")
+	emit_javadoc({ "Native by-value handle layout." }, body_indent)
+	yield(body_indent .. "public static final StructLayout LAYOUT = cStruct(\"" .. typ.cname .. "\",")
 	if tagged then
-		yield("\t\t\tValueLayout.JAVA_SHORT.withName(\"idx\"),")
-		yield("\t\t\tValueLayout.JAVA_SHORT.withName(\"type\"));")
+		yield(body_indent .. "\tValueLayout.JAVA_SHORT.withName(\"idx\"),")
+		yield(body_indent .. "\tValueLayout.JAVA_SHORT.withName(\"type\"));")
 	else
-		yield("\t\t\tValueLayout.JAVA_SHORT.withName(\"idx\"));")
+		yield(body_indent .. "\tValueLayout.JAVA_SHORT.withName(\"idx\"));")
 	end
-	yield("\t\tprivate static final VarHandle VH_IDX = LAYOUT.varHandle(")
-	yield("\t\t\tMemoryLayout.PathElement.groupElement(\"idx\"));")
+	yield(body_indent .. "private static final VarHandle VH_IDX = LAYOUT.varHandle(")
+	yield(body_indent .. "\tMemoryLayout.PathElement.groupElement(\"idx\"));")
 	if tagged then
-		yield("\t\tprivate static final VarHandle VH_TYPE = LAYOUT.varHandle(")
-		yield("\t\t\tMemoryLayout.PathElement.groupElement(\"type\"));")
-		emit_javadoc({ "Invalid handle sentinel." }, "\t\t")
-		yield("\t\tpublic static final " .. typ.name .. " INVALID =")
-		yield("\t\t\tnew " .. typ.name .. "((short) 0xffff, (short) 0xffff);")
+		yield(body_indent .. "private static final VarHandle VH_TYPE = LAYOUT.varHandle(")
+		yield(body_indent .. "\tMemoryLayout.PathElement.groupElement(\"type\"));")
+		emit_javadoc({ "Invalid handle sentinel." }, body_indent)
+		yield(body_indent .. "public static final " .. typ.name .. " INVALID =")
+		yield(body_indent .. "\tnew " .. typ.name .. "((short) 0xffff, (short) 0xffff);")
 	else
-		emit_javadoc({ "Invalid handle sentinel." }, "\t\t")
-		yield("\t\tpublic static final " .. typ.name .. " INVALID = new " .. typ.name .. "((short) 0xffff);")
+		emit_javadoc({ "Invalid handle sentinel." }, body_indent)
+		yield(body_indent .. "public static final " .. typ.name .. " INVALID = new " .. typ.name .. "((short) 0xffff);")
 	end
 	if tagged then
 		for index, source in ipairs(typ.tagged) do
 			yield("")
-			emit_javadoc({ "Creates a tagged buffer handle." }, "\t\t",
+			emit_javadoc({ "Creates a tagged buffer handle." }, body_indent,
 				{ { name = "handle", text = "the source " .. source } })
-			yield("\t\tpublic " .. typ.name .. "(" .. source .. " handle) {")
-			yield(string.format("\t\t\tthis(handle.idx(), (short) %d);", index - 1))
-			yield("\t\t}")
+			yield(body_indent .. "public " .. typ.name .. "(" .. source .. " handle) {")
+			yield(string.format(body_indent .. "\tthis(handle.idx(), (short) %d);", index - 1))
+			yield(body_indent .. "}")
 		end
 	end
 	yield("")
-	emit_javadoc({ "Returns whether this handle is valid." }, "\t\t", nil,
+	emit_javadoc({ "Returns whether this handle is valid." }, body_indent, nil,
 		"{@code true} when the handle index is not {@code UINT16_MAX}")
-	yield("\t\tpublic boolean isValid() {")
-	yield("\t\t\treturn idx != (short) 0xffff;")
-	yield("\t\t}")
+	yield(body_indent .. "public boolean isValid() {")
+	yield(body_indent .. "\treturn idx != (short) 0xffff;")
+	yield(body_indent .. "}")
 	yield("")
-	emit_javadoc({ "Allocates and writes the native by-value handle representation." }, "\t\t",
+	emit_javadoc({ "Allocates and writes the native by-value handle representation." }, body_indent,
 		{ { name = "allocator", text = "the destination allocator" } }, "the allocated native segment")
-	yield("\t\tpublic MemorySegment allocate(SegmentAllocator allocator) {")
-	yield("\t\t\tMemorySegment segment = allocator.allocate(LAYOUT);")
-	yield("\t\t\twrite(segment);")
-	yield("\t\t\treturn segment;")
-	yield("\t\t}")
+	yield(body_indent .. "public MemorySegment allocate(SegmentAllocator allocator) {")
+	yield(body_indent .. "\tMemorySegment segment = allocator.allocate(LAYOUT);")
+	yield(body_indent .. "\twrite(segment);")
+	yield(body_indent .. "\treturn segment;")
+	yield(body_indent .. "}")
 	yield("")
-	emit_javadoc({ "Writes this handle to an existing native segment." }, "\t\t",
+	emit_javadoc({ "Writes this handle to an existing native segment." }, body_indent,
 		{ { name = "segment", text = "the destination segment" } })
-	yield("\t\tpublic void write(MemorySegment segment) {")
-	yield("\t\t\tsegment = view(segment, LAYOUT);")
-	yield("\t\t\tVH_IDX.set(segment, 0L, idx);")
+	yield(body_indent .. "public void write(MemorySegment segment) {")
+	yield(body_indent .. "\tsegment = view(segment, LAYOUT);")
+	yield(body_indent .. "\tVH_IDX.set(segment, 0L, idx);")
 	if tagged then
-		yield("\t\t\tVH_TYPE.set(segment, 0L, type);")
+		yield(body_indent .. "\tVH_TYPE.set(segment, 0L, type);")
 	end
-	yield("\t\t}")
+	yield(body_indent .. "}")
 	yield("")
-	emit_javadoc({ "Reads a by-value handle from native memory." }, "\t\t",
+	emit_javadoc({ "Reads a by-value handle from native memory." }, body_indent,
 		{ { name = "segment", text = "the source segment" } }, "the decoded handle")
-	yield("\t\tpublic static " .. typ.name .. " read(MemorySegment segment) {")
-	yield("\t\t\tsegment = view(segment, LAYOUT);")
+	yield(body_indent .. "public static " .. typ.name .. " read(MemorySegment segment) {")
+	yield(body_indent .. "\tsegment = view(segment, LAYOUT);")
 	if tagged then
-		yield("\t\t\treturn new " .. typ.name .. "(")
-		yield("\t\t\t\t(short) VH_IDX.get(segment, 0L),")
-		yield("\t\t\t\t(short) VH_TYPE.get(segment, 0L));")
+		yield(body_indent .. "\treturn new " .. typ.name .. "(")
+		yield(body_indent .. "\t\t(short) VH_IDX.get(segment, 0L),")
+		yield(body_indent .. "\t\t(short) VH_TYPE.get(segment, 0L));")
 	else
-		yield("\t\t\treturn new " .. typ.name .. "((short) VH_IDX.get(segment, 0L));")
+		yield(body_indent .. "\treturn new " .. typ.name .. "((short) VH_IDX.get(segment, 0L));")
 	end
-	yield("\t\t}")
-	yield("\t}")
+	yield(body_indent .. "}")
+	yield(root_indent .. "}")
 end
 
 local function callback_carrier_type(arg)
@@ -913,7 +738,9 @@ local function descriptor_expression(ret, args)
 	return "FunctionDescriptor.of(" .. layout_type(ret, false) .. suffix .. ")"
 end
 
-local function emit_funcptr(typ)
+local function emit_funcptr(typ, root_indent)
+	root_indent = root_indent or ""
+	local body_indent = root_indent .. "\t"
 	local args = {}
 	local arg_types = {}
 	local method_classes = {}
@@ -931,29 +758,30 @@ local function emit_funcptr(typ)
 		end
 	end
 	local ret = callback_carrier_type(typ.ret)
-	emit_javadoc(typ.comments or { "Native callback." }, "\t")
-	yield("\t@FunctionalInterface")
-	yield("\tpublic interface " .. typ.name .. " {")
-	emit_javadoc({ "Native callback function descriptor." }, "\t\t")
-	yield("\t\tFunctionDescriptor DESCRIPTOR = " .. descriptor_expression(typ.ret, arg_types) .. ";")
-	emit_javadoc({ "Bound callback target used to create upcall stubs." }, "\t\t")
-	yield("\t\tMethodHandle TARGET = upcallTarget(")
-	yield("\t\t\t" .. typ.name .. ".class, \"invoke\", MethodType.methodType(")
+	emit_javadoc(typ.comments or { "Native callback." }, root_indent)
+	yield(root_indent .. "@FunctionalInterface")
+	yield(root_indent .. "@SuppressWarnings(\"restricted\")")
+	yield(root_indent .. "public interface " .. typ.name .. " {")
+	emit_javadoc({ "Native callback function descriptor." }, body_indent)
+	yield(body_indent .. "FunctionDescriptor DESCRIPTOR = " .. descriptor_expression(typ.ret, arg_types) .. ";")
+	emit_javadoc({ "Bound callback target used to create upcall stubs." }, body_indent)
+	yield(body_indent .. "MethodHandle TARGET = upcallTarget(")
+	yield(body_indent .. "\t" .. typ.name .. ".class, \"invoke\", MethodType.methodType(")
 	local class_suffix = #method_classes == 0 and "" or ", " .. table.concat(method_classes, ", ")
-	yield("\t\t\t\t" .. java_class_literal(ret) .. class_suffix .. "));")
+	yield(body_indent .. "\t\t" .. java_class_literal(ret) .. class_suffix .. "));")
 	yield("")
-	emit_javadoc({ "Invoked by native bgfx code. Implementations must not throw." }, "\t\t", params)
-	yield("\t\t" .. ret .. " invoke(" .. table.concat(args, ", ") .. ");")
+	emit_javadoc({ "Invoked by native bgfx code. Implementations must not throw." }, body_indent, params)
+	yield(body_indent .. ret .. " invoke(" .. table.concat(args, ", ") .. ");")
 	yield("")
 	emit_javadoc({
 		"Creates an upcall stub for this callback.",
 		"The arena must remain alive until bgfx can no longer invoke the callback.",
-	}, "\t\t", { { name = "arena", text = "a caller-owned, long-lived arena" } }, "the native function pointer")
-	yield("\t\tdefault MemorySegment upcall(Arena arena) {")
-	yield("\t\t\tObjects.requireNonNull(arena, \"arena\");")
-	yield("\t\t\treturn LINKER.upcallStub(TARGET.bindTo(this), DESCRIPTOR, arena);")
-	yield("\t\t}")
-	yield("\t}")
+	}, body_indent, { { name = "arena", text = "a caller-owned, long-lived arena" } }, "the native function pointer")
+	yield(body_indent .. "default MemorySegment upcall(Arena arena) {")
+	yield(body_indent .. "\tObjects.requireNonNull(arena, \"arena\");")
+	yield(body_indent .. "\treturn LINKER.upcallStub(TARGET.bindTo(this), DESCRIPTOR, arena);")
+	yield(body_indent .. "}")
+	yield(root_indent .. "}")
 end
 
 local function emit_member_accessor(member, body_indent)
@@ -1017,13 +845,6 @@ local function emit_member_accessor(member, body_indent)
 	yield(body_indent .. "}")
 end
 
-local concrete_structs = {}
-for _, typ in ipairs(idl.types) do
-	if typ.struct and not typ.namespace then
-		concrete_structs[typ.name] = typ
-	end
-end
-
 local function emit_struct_body(typ, funcs, body_indent)
 	local opaque = typ.name == "Encoder" and #typ.struct == 0
 	if not opaque then
@@ -1077,103 +898,23 @@ local function emit_struct_body(typ, funcs, body_indent)
 	end
 end
 
-namespace = ""
-
 function converter.types(params)
 	local typ = params.obj
 	local funcs = params.funcs
+	local root_indent = params.topLevel and "" or "\t"
 	if typ.args and typ.ret then
-		emit_funcptr(typ)
+		emit_funcptr(typ, root_indent)
 	elseif typ.handle then
-		lastCombinedFlagBlock()
-		emit_handle(typ)
+		emit_handle(typ, root_indent)
 	elseif typ.enum then
-		lastCombinedFlagBlock()
-		emit_enum(typ)
+		emit_enum(typ, root_indent)
 	elseif typ.bits ~= nil then
-		local prefix, name = typ.name:match "(%u%l+)(.*)"
-		if prefix ~= lastCombinedFlag then
-			lastCombinedFlagBlock()
-			lastCombinedFlag = prefix
-		end
-		local combinedFlag = combined[prefix]
-		if combinedFlag then
-			combinedFlag.bits = typ.bits
-			combinedFlag.name = prefix
-			local flags = combinedFlag.flag or {}
-			combinedFlag.flag = flags
-			local lookup = combinedFlag.lookup or {}
-			combinedFlag.lookup = lookup
-			for _, flag in ipairs(typ.flag) do
-				local flagName = name .. flag.name:gsub("_", "")
-				local value = flag.value
-				if value == nil then
-					-- It's a combined flag
-					value = 0
-					for _, v in ipairs(flag) do
-						value = value | assert(lookup[name .. v], v .. " is not defined for " .. flagName)
-					end
-				end
-				lookup[flagName] = value
-				table.insert(flags, {
-					name = flagName,
-					value = value,
-					comment = flag.comment
-				})
-			end
-
-			if typ.shift then
-				table.insert(flags, {
-					name = name .. "Shift",
-					value = typ.shift,
-					format = "%d",
-					comment = typ.comment
-				})
-			end
-
-			if typ.mask then
-				-- generate Mask
-				table.insert(flags, {
-					name = name .. "Mask",
-					value = typ.mask,
-					comment = typ.comment
-				})
-				lookup[name .. "Mask"] = typ.mask
-			end
-		else
-			FlagBlock(typ)
-		end
+		FlagBlock(typ, root_indent)
 	elseif typ.struct ~= nil then
-		local skip = false
-		local class_indent
-		local body_indent
-		if typ.namespace then
-			if namespace ~= typ.namespace then
-				local concrete = concrete_structs[typ.namespace]
-				emit_javadoc(concrete and concrete.comments or { typ.namespace .. " structures." }, "\t")
-				local extends = concrete and " extends NativeObject" or ""
-				yield("\tpublic static final class " .. typ.namespace .. extends .. " {")
-				namespace = typ.namespace
-			end
-			class_indent = "\t\t"
-			body_indent = "\t\t\t"
-		elseif namespace ~= "" then
-			assert(typ.name == namespace, "Namespace " .. namespace .. " has no matching struct")
-			namespace = ""
-			skip = true
-			class_indent = "\t"
-			body_indent = "\t\t"
-		else
-			class_indent = "\t"
-			body_indent = "\t\t"
-		end
-
-		if not skip then
-			emit_javadoc(typ.comments or { typ.name .. " native structure." }, class_indent)
-			yield(class_indent .. "public static final class " .. typ.name .. " extends NativeObject {")
-		end
-		emit_struct_body(typ, funcs, body_indent)
-		yield(class_indent .. "}")
+		emit_javadoc(typ.comments or { typ.name .. " native structure." }, root_indent)
+		yield(root_indent .. "public final class " .. typ.name .. " extends NativeObject {")
+		emit_struct_body(typ, funcs, root_indent .. "\t")
+		yield(root_indent .. "}")
 	end
 end
 
@@ -1380,7 +1121,7 @@ local function emit_variadic_wrapper(func, func_indent)
 	yield(body .. "\tMethodHandle handle = LINKER.downcallHandle(")
 	yield(body .. "\t\tvariadicSymbol(VC_" .. constant_name(func.cname) .. "),")
 	yield(body .. "\t\tdescriptor, Linker.Option.firstVariadicArg(" .. fixed_count .. "));")
-	yield(body .. "\t" .. return_statement(func, "invoke(handle, nativeArgs)"))
+	yield(body .. "\t" .. return_statement(func, "FFMUtil.invoke(handle, nativeArgs)"))
 	yield(body .. "}")
 	yield(func_indent .. "}")
 end
@@ -1406,7 +1147,7 @@ local function emit_native_descriptor(func)
 	else
 		local index = #downcall_entries
 		table.insert(downcall_entries, { func = func, index = index })
-		yield("\tprivate static final int DC_" .. constant_name(func.cname) .. " = " .. index .. ";")
+		yield("\tstatic final int DC_" .. constant_name(func.cname) .. " = " .. index .. ";")
 		yield("\tprivate static final FunctionDescriptor FD_" .. constant_name(func.cname)
 			.. " = " .. function_descriptor(func) .. ";")
 	end
@@ -1456,16 +1197,217 @@ function converter.funcs(params)
 	emit_native_descriptor(func)
 end
 
-function gen.write(codes, outputfile)
-	local out = assert(io.open(outputfile, "wb"))
-	out:write(codes)
-	out:close()
-	print("Generating: " .. outputfile)
+local function combine_flag_type(target, typ, name)
+	target.bits = typ.bits
+	target.name = typ.name:match("(%u%l+)")
+	local flags = target.flag or {}
+	target.flag = flags
+	local lookup = target.lookup or {}
+	target.lookup = lookup
+	for _, flag in ipairs(typ.flag) do
+		local flag_name = name .. flag.name:gsub("_", "")
+		local value = flag.value
+		if value == nil then
+			value = 0
+			for _, part in ipairs(flag) do
+				value = value | assert(lookup[name .. part], part .. " is not defined for " .. flag_name)
+			end
+		end
+		lookup[flag_name] = value
+		table.insert(flags, {
+			name = flag_name,
+			value = value,
+			comment = flag.comment,
+		})
+	end
+	if typ.shift then
+		table.insert(flags, {
+			name = name .. "Shift",
+			value = typ.shift,
+			format = "%d",
+			comment = typ.comment,
+		})
+	end
+	if typ.mask then
+		table.insert(flags, {
+			name = name .. "Mask",
+			value = typ.mask,
+			comment = typ.comment,
+		})
+		lookup[name .. "Mask"] = typ.mask
+	end
+end
+
+local function prepared_types()
+	for _, typ in ipairs(idl.types) do
+		if typ.bits ~= nil then
+			local prefix, name = typ.name:match("(%u%l+)(.*)")
+			if combined[prefix] then
+				combine_flag_type(combined[prefix], typ, name)
+			end
+		end
+	end
+
+	local result = {}
+	local emitted = {}
+	for _, typ in ipairs(idl.types) do
+		local output = typ
+		if typ.bits ~= nil then
+			local prefix = typ.name:match("(%u%l+)")
+			if combined[prefix] then
+				if emitted[prefix] then
+					output = nil
+				else
+					emitted[prefix] = true
+					output = combined[prefix]
+				end
+			end
+		end
+		if output then
+			table.insert(result, output)
+		end
+	end
+	return result
+end
+
+local function generated_type_name(typ)
+	if typ.args and typ.ret then
+		return typ.name
+	elseif typ.handle then
+		return typ.name
+	elseif typ.enum then
+		return typ.typename
+	elseif typ.bits ~= nil then
+		return typ.name .. "Flags"
+	elseif typ.struct ~= nil then
+		return typ.name
+	end
+end
+
+local function type_source(typ, body)
+	local package_name = java_package
+	if typ.namespace then
+		package_name = package_name .. "." .. typ.namespace:lower()
+	end
+	local imports = [[
+
+import java.lang.foreign.Arena;
+import java.lang.foreign.FunctionDescriptor;
+import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.SegmentAllocator;
+import java.lang.foreign.StructLayout;
+import java.lang.foreign.ValueLayout;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodType;
+import java.lang.invoke.VarHandle;
+import java.util.Objects;
+
+import ]] .. java_package .. [[.util.NativeObject;
+
+import static ]] .. java_package .. [[.BGFX.*;
+import static ]] .. java_package .. [[.util.FFMUtil.*;
+]]
+	if typ.namespace then
+		imports = imports .. "import " .. java_package .. ".*;\n"
+	end
+	return java_header .. "\npackage " .. package_name .. ";\n" .. imports .. "\n" .. body .. "\n"
+end
+
+function gen.files()
+	reset_generator_state()
+	local methods = collect_methods()
+	local files = {}
+
+	for _, typ in ipairs(prepared_types()) do
+		local name = generated_type_name(typ)
+		if name then
+			local body = generate_object("types", typ, methods[typ.cname])
+			if body ~= "" then
+				local path = (typ.namespace and typ.namespace:lower() .. "/" or "") .. name .. ".java"
+				assert(files[path] == nil, "Duplicate Java output: " .. path)
+				files[path] = type_source(typ, body)
+			end
+		end
+	end
+
+	local sections = { funcs = generate_function_section() }
+	files["Bgfx.java"] = (java_template:gsub("$(%l+)", sections))
+	return files
+end
+
+function gen.gen()
+	return gen.files()
+end
+
+local function ensure_directory(path)
+	if os.mkdir then
+		os.mkdir(path)
+		return
+	end
+	local separator = package.config:sub(1, 1)
+	local command
+	if separator == "\\" then
+		command = 'mkdir "' .. path .. '" >NUL 2>NUL'
+	else
+		command = 'mkdir -p "' .. path .. '"'
+	end
+	local ok, _, code = os.execute(command)
+	assert(ok or code == 0, "Unable to create directory: " .. path)
+end
+
+local function clear_generated_output(outputdir)
+	local normalized = outputdir:gsub("\\", "/"):gsub("/+$", "")
+	assert(normalized:match("io/github/bkaradzic/bgfx$"),
+		"Java output directory must end with io/github/bkaradzic/bgfx: " .. outputdir)
+
+	local separator = package.config:sub(1, 1)
+	local command
+	if separator == "\\" then
+		local escaped = outputdir:gsub("'", "''")
+		command = "powershell -NoProfile -Command \"Get-ChildItem -LiteralPath '"
+			.. escaped .. "' | Where-Object Name -ne 'util' | Remove-Item -Recurse -Force\""
+	else
+		command = 'find "' .. outputdir
+			.. '" -mindepth 1 -maxdepth 1 ! -name util -exec rm -rf -- {} +'
+	end
+	local ok, _, code = os.execute(command)
+	assert(ok or code == 0, "Unable to clear generated Java output: " .. outputdir)
+end
+
+function gen.write(files, outputdir)
+	print("Generating: " .. outputdir .. "/**.java")
+	ensure_directory(outputdir)
+	clear_generated_output(outputdir)
+	local names = {}
+	for name in pairs(files) do
+		table.insert(names, name)
+	end
+	table.sort(names)
+	for _, name in ipairs(names) do
+		local directory = name:match("^(.*)/")
+		if directory then
+			ensure_directory(outputdir .. "/" .. directory)
+		end
+		local outputfile = outputdir .. "/" .. name
+		local out = assert(io.open(outputfile, "wb"))
+		out:write(files[name])
+		out:close()
+	end
 end
 
 if (...) == nil then
 	-- run `lua bindings-java.lua` in command line
-	print(gen.gen())
+	local files = gen.gen()
+	local names = {}
+	for name in pairs(files) do
+		table.insert(names, name)
+	end
+	table.sort(names)
+	for _, name in ipairs(names) do
+		print("// " .. name)
+		print(files[name])
+	end
 end
 
 return gen
