@@ -21,6 +21,8 @@ import java.lang.invoke.VarHandle;
 import java.util.Objects;
 
 import io.github.bkaradzic.bgfx.util.NativeObject;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import static io.github.bkaradzic.bgfx.BGFX.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
@@ -40,6 +42,7 @@ import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
  * {@code blitOffsetAlign} report what the backend copies directly, and
  * {@code BufferRegion.init} fills in a layout that matches them.
  */
+@NullMarked
 public final class BufferRegion extends NativeObject {
 	/**
 	 * Native C structure layout.
@@ -168,7 +171,7 @@ public final class BufferRegion extends NativeObject {
 	 */
 	public final void initTexture(TextureRegion _texture) {
 		try {
-			downcallHandle(DC_BUFFER_REGION_INIT_TEXTURE).invokeExact(segment(), address(_texture));
+			MH_BUFFER_REGION_INIT_TEXTURE.invokeExact(segment(), address(_texture));
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -185,7 +188,7 @@ public final class BufferRegion extends NativeObject {
 	public final void initBuffer(BufferHandle _handle, int _offset, int _size) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_BUFFER_REGION_INIT_BUFFER).invokeExact(segment(), _handle.allocate(arena), _offset, _size);
+				MH_BUFFER_REGION_INIT_BUFFER.invokeExact(segment(), _handle.allocate(arena), _offset, _size);
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);

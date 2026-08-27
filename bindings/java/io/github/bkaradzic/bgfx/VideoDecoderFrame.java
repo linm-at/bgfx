@@ -21,6 +21,8 @@ import java.lang.invoke.VarHandle;
 import java.util.Objects;
 
 import io.github.bkaradzic.bgfx.util.NativeObject;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import static io.github.bkaradzic.bgfx.BGFX.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
@@ -42,6 +44,7 @@ import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
  * consumed the submission ({@code copy} only deep-copies the
  * {@code VideoDecoderFrame} struct itself, not the buffers it references).
  */
+@NullMarked
 public final class VideoDecoderFrame extends NativeObject {
 	/**
 	 * Native C structure layout.
@@ -102,7 +105,7 @@ public final class VideoDecoderFrame extends NativeObject {
 	 * @return the field value
 	 */
 	public MemorySegment bitstream() {
-		return (MemorySegment) VH_BITSTREAM.get(segment(), 0L);
+		return address((MemorySegment) VH_BITSTREAM.get(segment(), 0L));
 	}
 
 	/**

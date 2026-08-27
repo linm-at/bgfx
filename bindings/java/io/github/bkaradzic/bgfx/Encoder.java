@@ -21,6 +21,8 @@ import java.lang.invoke.VarHandle;
 import java.util.Objects;
 
 import io.github.bkaradzic.bgfx.util.NativeObject;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import static io.github.bkaradzic.bgfx.BGFX.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
@@ -29,6 +31,7 @@ import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
  * Encoders are used for submitting draw calls from multiple threads. Only one encoder
  * per thread should be used. Use {@code begin()} to obtain an encoder for a thread.
  */
+@NullMarked
 public final class Encoder extends NativeObject {
 	/**
 	 * Wraps an opaque native pointer.
@@ -47,7 +50,7 @@ public final class Encoder extends NativeObject {
 	public final void setMarker(String _name, int _len) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SET_MARKER).invokeExact(segment(), cString(arena, _name), _len);
+				MH_ENCODER_SET_MARKER.invokeExact(segment(), cString(arena, _name), _len);
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -72,7 +75,7 @@ public final class Encoder extends NativeObject {
 	 */
 	public final void setState(long _state, int _rgba) {
 		try {
-			downcallHandle(DC_ENCODER_SET_STATE).invokeExact(segment(), _state, _rgba);
+			MH_ENCODER_SET_STATE.invokeExact(segment(), _state, _rgba);
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -86,7 +89,7 @@ public final class Encoder extends NativeObject {
 	public final void setCondition(OcclusionQueryHandle _handle, boolean _visible) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SET_CONDITION).invokeExact(segment(), _handle.allocate(arena), _visible);
+				MH_ENCODER_SET_CONDITION.invokeExact(segment(), _handle.allocate(arena), _visible);
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -100,7 +103,7 @@ public final class Encoder extends NativeObject {
 	 */
 	public final void setStencil(int _fstencil, int _bstencil) {
 		try {
-			downcallHandle(DC_ENCODER_SET_STENCIL).invokeExact(segment(), _fstencil, _bstencil);
+			MH_ENCODER_SET_STENCIL.invokeExact(segment(), _fstencil, _bstencil);
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -119,7 +122,7 @@ public final class Encoder extends NativeObject {
 	 */
 	public final short setScissor(short _x, short _y, short _width, short _height) {
 		try {
-			return (short) downcallHandle(DC_ENCODER_SET_SCISSOR).invokeExact(segment(), _x, _y, _width, _height);
+			return (short) MH_ENCODER_SET_SCISSOR.invokeExact(segment(), _x, _y, _width, _height);
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -134,7 +137,7 @@ public final class Encoder extends NativeObject {
 	 */
 	public final void setScissorCached(short _cache) {
 		try {
-			downcallHandle(DC_ENCODER_SET_SCISSOR_CACHED).invokeExact(segment(), _cache);
+			MH_ENCODER_SET_SCISSOR_CACHED.invokeExact(segment(), _cache);
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -149,7 +152,7 @@ public final class Encoder extends NativeObject {
 	 */
 	public final int setTransform(MemorySegment _mtx, short _num) {
 		try {
-			return (int) downcallHandle(DC_ENCODER_SET_TRANSFORM).invokeExact(segment(), address(_mtx), _num);
+			return (int) MH_ENCODER_SET_TRANSFORM.invokeExact(segment(), address(_mtx), _num);
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -162,7 +165,7 @@ public final class Encoder extends NativeObject {
 	 */
 	public final void setTransformCached(int _cache, short _num) {
 		try {
-			downcallHandle(DC_ENCODER_SET_TRANSFORM_CACHED).invokeExact(segment(), _cache, _num);
+			MH_ENCODER_SET_TRANSFORM_CACHED.invokeExact(segment(), _cache, _num);
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -178,7 +181,7 @@ public final class Encoder extends NativeObject {
 	 */
 	public final int allocTransform(Transform _transform, short _num) {
 		try {
-			return (int) downcallHandle(DC_ENCODER_ALLOC_TRANSFORM).invokeExact(segment(), address(_transform), _num);
+			return (int) MH_ENCODER_ALLOC_TRANSFORM.invokeExact(segment(), address(_transform), _num);
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -193,7 +196,7 @@ public final class Encoder extends NativeObject {
 	public final void setUniform(UniformHandle _handle, MemorySegment _value, short _num) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SET_UNIFORM).invokeExact(segment(), _handle.allocate(arena), address(_value), _num);
+				MH_ENCODER_SET_UNIFORM.invokeExact(segment(), _handle.allocate(arena), address(_value), _num);
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -209,7 +212,7 @@ public final class Encoder extends NativeObject {
 	public final void setIndexBuffer(IndexBufferHandle _handle, int _firstIndex, int _numIndices) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SET_INDEX_BUFFER).invokeExact(segment(), _handle.allocate(arena), _firstIndex, _numIndices);
+				MH_ENCODER_SET_INDEX_BUFFER.invokeExact(segment(), _handle.allocate(arena), _firstIndex, _numIndices);
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -225,7 +228,7 @@ public final class Encoder extends NativeObject {
 	public final void setDynamicIndexBuffer(DynamicIndexBufferHandle _handle, int _firstIndex, int _numIndices) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SET_DYNAMIC_INDEX_BUFFER).invokeExact(segment(), _handle.allocate(arena), _firstIndex, _numIndices);
+				MH_ENCODER_SET_DYNAMIC_INDEX_BUFFER.invokeExact(segment(), _handle.allocate(arena), _firstIndex, _numIndices);
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -240,7 +243,7 @@ public final class Encoder extends NativeObject {
 	 */
 	public final void setTransientIndexBuffer(TransientIndexBuffer _tib, int _firstIndex, int _numIndices) {
 		try {
-			downcallHandle(DC_ENCODER_SET_TRANSIENT_INDEX_BUFFER).invokeExact(segment(), address(_tib), _firstIndex, _numIndices);
+			MH_ENCODER_SET_TRANSIENT_INDEX_BUFFER.invokeExact(segment(), address(_tib), _firstIndex, _numIndices);
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -256,7 +259,7 @@ public final class Encoder extends NativeObject {
 	public final void setVertexBuffer(byte _stream, VertexBufferHandle _handle, int _startVertex, int _numVertices) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SET_VERTEX_BUFFER).invokeExact(segment(), _stream, _handle.allocate(arena), _startVertex, _numVertices);
+				MH_ENCODER_SET_VERTEX_BUFFER.invokeExact(segment(), _stream, _handle.allocate(arena), _startVertex, _numVertices);
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -274,7 +277,7 @@ public final class Encoder extends NativeObject {
 	public final void setVertexBufferWithLayout(byte _stream, VertexBufferHandle _handle, int _startVertex, int _numVertices, VertexLayoutHandle _layoutHandle) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SET_VERTEX_BUFFER_WITH_LAYOUT).invokeExact(segment(), _stream, _handle.allocate(arena), _startVertex, _numVertices, _layoutHandle.allocate(arena));
+				MH_ENCODER_SET_VERTEX_BUFFER_WITH_LAYOUT.invokeExact(segment(), _stream, _handle.allocate(arena), _startVertex, _numVertices, _layoutHandle.allocate(arena));
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -291,7 +294,7 @@ public final class Encoder extends NativeObject {
 	public final void setDynamicVertexBuffer(byte _stream, DynamicVertexBufferHandle _handle, int _startVertex, int _numVertices) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SET_DYNAMIC_VERTEX_BUFFER).invokeExact(segment(), _stream, _handle.allocate(arena), _startVertex, _numVertices);
+				MH_ENCODER_SET_DYNAMIC_VERTEX_BUFFER.invokeExact(segment(), _stream, _handle.allocate(arena), _startVertex, _numVertices);
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -309,7 +312,7 @@ public final class Encoder extends NativeObject {
 	public final void setDynamicVertexBufferWithLayout(byte _stream, DynamicVertexBufferHandle _handle, int _startVertex, int _numVertices, VertexLayoutHandle _layoutHandle) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SET_DYNAMIC_VERTEX_BUFFER_WITH_LAYOUT).invokeExact(segment(), _stream, _handle.allocate(arena), _startVertex, _numVertices, _layoutHandle.allocate(arena));
+				MH_ENCODER_SET_DYNAMIC_VERTEX_BUFFER_WITH_LAYOUT.invokeExact(segment(), _stream, _handle.allocate(arena), _startVertex, _numVertices, _layoutHandle.allocate(arena));
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -325,7 +328,7 @@ public final class Encoder extends NativeObject {
 	 */
 	public final void setTransientVertexBuffer(byte _stream, TransientVertexBuffer _tvb, int _startVertex, int _numVertices) {
 		try {
-			downcallHandle(DC_ENCODER_SET_TRANSIENT_VERTEX_BUFFER).invokeExact(segment(), _stream, address(_tvb), _startVertex, _numVertices);
+			MH_ENCODER_SET_TRANSIENT_VERTEX_BUFFER.invokeExact(segment(), _stream, address(_tvb), _startVertex, _numVertices);
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -342,7 +345,7 @@ public final class Encoder extends NativeObject {
 	public final void setTransientVertexBufferWithLayout(byte _stream, TransientVertexBuffer _tvb, int _startVertex, int _numVertices, VertexLayoutHandle _layoutHandle) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SET_TRANSIENT_VERTEX_BUFFER_WITH_LAYOUT).invokeExact(segment(), _stream, address(_tvb), _startVertex, _numVertices, _layoutHandle.allocate(arena));
+				MH_ENCODER_SET_TRANSIENT_VERTEX_BUFFER_WITH_LAYOUT.invokeExact(segment(), _stream, address(_tvb), _startVertex, _numVertices, _layoutHandle.allocate(arena));
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -358,7 +361,7 @@ public final class Encoder extends NativeObject {
 	 */
 	public final void setVertexCount(int _numVertices) {
 		try {
-			downcallHandle(DC_ENCODER_SET_VERTEX_COUNT).invokeExact(segment(), _numVertices);
+			MH_ENCODER_SET_VERTEX_COUNT.invokeExact(segment(), _numVertices);
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -372,7 +375,7 @@ public final class Encoder extends NativeObject {
 	 */
 	public final void setInstanceDataBuffer(InstanceDataBuffer _idb, int _start, int _num) {
 		try {
-			downcallHandle(DC_ENCODER_SET_INSTANCE_DATA_BUFFER).invokeExact(segment(), address(_idb), _start, _num);
+			MH_ENCODER_SET_INSTANCE_DATA_BUFFER.invokeExact(segment(), address(_idb), _start, _num);
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -387,7 +390,7 @@ public final class Encoder extends NativeObject {
 	public final void setInstanceDataFromVertexBuffer(VertexBufferHandle _handle, int _startVertex, int _num) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SET_INSTANCE_DATA_FROM_VERTEX_BUFFER).invokeExact(segment(), _handle.allocate(arena), _startVertex, _num);
+				MH_ENCODER_SET_INSTANCE_DATA_FROM_VERTEX_BUFFER.invokeExact(segment(), _handle.allocate(arena), _startVertex, _num);
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -403,7 +406,7 @@ public final class Encoder extends NativeObject {
 	public final void setInstanceDataFromDynamicVertexBuffer(DynamicVertexBufferHandle _handle, int _startVertex, int _num) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SET_INSTANCE_DATA_FROM_DYNAMIC_VERTEX_BUFFER).invokeExact(segment(), _handle.allocate(arena), _startVertex, _num);
+				MH_ENCODER_SET_INSTANCE_DATA_FROM_DYNAMIC_VERTEX_BUFFER.invokeExact(segment(), _handle.allocate(arena), _startVertex, _num);
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -419,7 +422,7 @@ public final class Encoder extends NativeObject {
 	 */
 	public final void setInstanceCount(int _numInstances) {
 		try {
-			downcallHandle(DC_ENCODER_SET_INSTANCE_COUNT).invokeExact(segment(), _numInstances);
+			MH_ENCODER_SET_INSTANCE_COUNT.invokeExact(segment(), _numInstances);
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -435,7 +438,7 @@ public final class Encoder extends NativeObject {
 	public final void setTexture(byte _stage, UniformHandle _sampler, TextureHandle _handle, int _flags) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SET_TEXTURE).invokeExact(segment(), _stage, _sampler.allocate(arena), _handle.allocate(arena), _flags);
+				MH_ENCODER_SET_TEXTURE.invokeExact(segment(), _stage, _sampler.allocate(arena), _handle.allocate(arena), _flags);
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -457,7 +460,7 @@ public final class Encoder extends NativeObject {
 	public final void setTextureView(byte _stage, UniformHandle _sampler, TextureHandle _handle, short _firstLayer, short _numLayers, byte _firstMip, byte _numMips, int _flags) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SET_TEXTURE_VIEW).invokeExact(segment(), _stage, _sampler.allocate(arena), _handle.allocate(arena), _firstLayer, _numLayers, _firstMip, _numMips, _flags);
+				MH_ENCODER_SET_TEXTURE_VIEW.invokeExact(segment(), _stage, _sampler.allocate(arena), _handle.allocate(arena), _firstLayer, _numLayers, _firstMip, _numMips, _flags);
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -476,7 +479,7 @@ public final class Encoder extends NativeObject {
 	 */
 	public final void touch(short _id) {
 		try {
-			downcallHandle(DC_ENCODER_TOUCH).invokeExact(segment(), _id);
+			MH_ENCODER_TOUCH.invokeExact(segment(), _id);
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -492,7 +495,7 @@ public final class Encoder extends NativeObject {
 	public final void submit(short _id, ProgramHandle _program, int _depth, byte _flags) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SUBMIT).invokeExact(segment(), _id, _program.allocate(arena), _depth, _flags);
+				MH_ENCODER_SUBMIT.invokeExact(segment(), _id, _program.allocate(arena), _depth, _flags);
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -510,7 +513,7 @@ public final class Encoder extends NativeObject {
 	public final void submitOcclusionQuery(short _id, ProgramHandle _program, OcclusionQueryHandle _occlusionQuery, int _depth, byte _flags) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SUBMIT_OCCLUSION_QUERY).invokeExact(segment(), _id, _program.allocate(arena), _occlusionQuery.allocate(arena), _depth, _flags);
+				MH_ENCODER_SUBMIT_OCCLUSION_QUERY.invokeExact(segment(), _id, _program.allocate(arena), _occlusionQuery.allocate(arena), _depth, _flags);
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -533,7 +536,7 @@ public final class Encoder extends NativeObject {
 	public final void submitIndirect(short _id, ProgramHandle _program, IndirectBufferHandle _indirectHandle, int _start, int _num, int _depth, byte _flags) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SUBMIT_INDIRECT).invokeExact(segment(), _id, _program.allocate(arena), _indirectHandle.allocate(arena), _start, _num, _depth, _flags);
+				MH_ENCODER_SUBMIT_INDIRECT.invokeExact(segment(), _id, _program.allocate(arena), _indirectHandle.allocate(arena), _start, _num, _depth, _flags);
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -558,7 +561,7 @@ public final class Encoder extends NativeObject {
 	public final void submitIndirectCount(short _id, ProgramHandle _program, IndirectBufferHandle _indirectHandle, int _start, IndexBufferHandle _numHandle, int _numIndex, int _numMax, int _depth, byte _flags) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SUBMIT_INDIRECT_COUNT).invokeExact(segment(), _id, _program.allocate(arena), _indirectHandle.allocate(arena), _start, _numHandle.allocate(arena), _numIndex, _numMax, _depth, _flags);
+				MH_ENCODER_SUBMIT_INDIRECT_COUNT.invokeExact(segment(), _id, _program.allocate(arena), _indirectHandle.allocate(arena), _start, _numHandle.allocate(arena), _numIndex, _numMax, _depth, _flags);
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -574,7 +577,7 @@ public final class Encoder extends NativeObject {
 	public final void setComputeIndexBuffer(byte _stage, IndexBufferHandle _handle, Access _access) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SET_COMPUTE_INDEX_BUFFER).invokeExact(segment(), _stage, _handle.allocate(arena), _access.ordinal());
+				MH_ENCODER_SET_COMPUTE_INDEX_BUFFER.invokeExact(segment(), _stage, _handle.allocate(arena), _access.ordinal());
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -590,7 +593,7 @@ public final class Encoder extends NativeObject {
 	public final void setComputeVertexBuffer(byte _stage, VertexBufferHandle _handle, Access _access) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SET_COMPUTE_VERTEX_BUFFER).invokeExact(segment(), _stage, _handle.allocate(arena), _access.ordinal());
+				MH_ENCODER_SET_COMPUTE_VERTEX_BUFFER.invokeExact(segment(), _stage, _handle.allocate(arena), _access.ordinal());
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -606,7 +609,7 @@ public final class Encoder extends NativeObject {
 	public final void setComputeDynamicIndexBuffer(byte _stage, DynamicIndexBufferHandle _handle, Access _access) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SET_COMPUTE_DYNAMIC_INDEX_BUFFER).invokeExact(segment(), _stage, _handle.allocate(arena), _access.ordinal());
+				MH_ENCODER_SET_COMPUTE_DYNAMIC_INDEX_BUFFER.invokeExact(segment(), _stage, _handle.allocate(arena), _access.ordinal());
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -622,7 +625,7 @@ public final class Encoder extends NativeObject {
 	public final void setComputeDynamicVertexBuffer(byte _stage, DynamicVertexBufferHandle _handle, Access _access) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SET_COMPUTE_DYNAMIC_VERTEX_BUFFER).invokeExact(segment(), _stage, _handle.allocate(arena), _access.ordinal());
+				MH_ENCODER_SET_COMPUTE_DYNAMIC_VERTEX_BUFFER.invokeExact(segment(), _stage, _handle.allocate(arena), _access.ordinal());
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -638,7 +641,7 @@ public final class Encoder extends NativeObject {
 	public final void setComputeIndirectBuffer(byte _stage, IndirectBufferHandle _handle, Access _access) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SET_COMPUTE_INDIRECT_BUFFER).invokeExact(segment(), _stage, _handle.allocate(arena), _access.ordinal());
+				MH_ENCODER_SET_COMPUTE_INDIRECT_BUFFER.invokeExact(segment(), _stage, _handle.allocate(arena), _access.ordinal());
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -656,7 +659,7 @@ public final class Encoder extends NativeObject {
 	public final void setImage(byte _stage, TextureHandle _handle, byte _mip, Access _access, TextureFormat _format) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SET_IMAGE).invokeExact(segment(), _stage, _handle.allocate(arena), _mip, _access.ordinal(), _format.ordinal());
+				MH_ENCODER_SET_IMAGE.invokeExact(segment(), _stage, _handle.allocate(arena), _mip, _access.ordinal(), _format.ordinal());
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -677,7 +680,7 @@ public final class Encoder extends NativeObject {
 	public final void setImageView(byte _stage, TextureHandle _handle, short _firstLayer, short _numLayers, byte _mip, Access _access, TextureFormat _format) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_SET_IMAGE_VIEW).invokeExact(segment(), _stage, _handle.allocate(arena), _firstLayer, _numLayers, _mip, _access.ordinal(), _format.ordinal());
+				MH_ENCODER_SET_IMAGE_VIEW.invokeExact(segment(), _stage, _handle.allocate(arena), _firstLayer, _numLayers, _mip, _access.ordinal(), _format.ordinal());
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -696,7 +699,7 @@ public final class Encoder extends NativeObject {
 	public final void dispatch(short _id, ProgramHandle _program, int _numX, int _numY, int _numZ, byte _flags) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_DISPATCH).invokeExact(segment(), _id, _program.allocate(arena), _numX, _numY, _numZ, _flags);
+				MH_ENCODER_DISPATCH.invokeExact(segment(), _id, _program.allocate(arena), _numX, _numY, _numZ, _flags);
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -715,7 +718,7 @@ public final class Encoder extends NativeObject {
 	public final void dispatchIndirect(short _id, ProgramHandle _program, IndirectBufferHandle _indirectHandle, int _start, int _num, byte _flags) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ENCODER_DISPATCH_INDIRECT).invokeExact(segment(), _id, _program.allocate(arena), _indirectHandle.allocate(arena), _start, _num, _flags);
+				MH_ENCODER_DISPATCH_INDIRECT.invokeExact(segment(), _id, _program.allocate(arena), _indirectHandle.allocate(arena), _start, _num, _flags);
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
@@ -728,7 +731,7 @@ public final class Encoder extends NativeObject {
 	 */
 	public final void discard(byte _flags) {
 		try {
-			downcallHandle(DC_ENCODER_DISCARD).invokeExact(segment(), _flags);
+			MH_ENCODER_DISCARD.invokeExact(segment(), _flags);
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -753,7 +756,7 @@ public final class Encoder extends NativeObject {
 	 */
 	public final void blit(short _id, TextureRegion _dst, TextureRegion _src) {
 		try {
-			downcallHandle(DC_ENCODER_BLIT).invokeExact(segment(), _id, address(_dst), address(_src));
+			MH_ENCODER_BLIT.invokeExact(segment(), _id, address(_dst), address(_src));
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -782,7 +785,7 @@ public final class Encoder extends NativeObject {
 	 */
 	public final void blitBuffer(short _id, BufferRegion _dst, BufferRegion _src) {
 		try {
-			downcallHandle(DC_ENCODER_BLIT_BUFFER).invokeExact(segment(), _id, address(_dst), address(_src));
+			MH_ENCODER_BLIT_BUFFER.invokeExact(segment(), _id, address(_dst), address(_src));
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -809,7 +812,7 @@ public final class Encoder extends NativeObject {
 	 */
 	public final void blitToBuffer(short _id, BufferRegion _dst, TextureRegion _src) {
 		try {
-			downcallHandle(DC_ENCODER_BLIT_TO_BUFFER).invokeExact(segment(), _id, address(_dst), address(_src));
+			MH_ENCODER_BLIT_TO_BUFFER.invokeExact(segment(), _id, address(_dst), address(_src));
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -837,7 +840,7 @@ public final class Encoder extends NativeObject {
 	 */
 	public final void blitFromBuffer(short _id, TextureRegion _dst, BufferRegion _src) {
 		try {
-			downcallHandle(DC_ENCODER_BLIT_FROM_BUFFER).invokeExact(segment(), _id, address(_dst), address(_src));
+			MH_ENCODER_BLIT_FROM_BUFFER.invokeExact(segment(), _id, address(_dst), address(_src));
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}

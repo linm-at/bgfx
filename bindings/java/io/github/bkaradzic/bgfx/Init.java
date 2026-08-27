@@ -21,6 +21,8 @@ import java.lang.invoke.VarHandle;
 import java.util.Objects;
 
 import io.github.bkaradzic.bgfx.util.NativeObject;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import static io.github.bkaradzic.bgfx.BGFX.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
@@ -28,6 +30,7 @@ import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 /**
  * Initialization parameters used by {@code init}.
  */
+@NullMarked
 public final class Init extends NativeObject {
 	/**
 	 * Native C structure layout.
@@ -281,7 +284,7 @@ public final class Init extends NativeObject {
 	 * @return the field value
 	 */
 	public MemorySegment callback() {
-		return (MemorySegment) VH_CALLBACK.get(segment(), 0L);
+		return address((MemorySegment) VH_CALLBACK.get(segment(), 0L));
 	}
 
 	/**
@@ -299,7 +302,7 @@ public final class Init extends NativeObject {
 	 * @return the field value
 	 */
 	public MemorySegment allocator() {
-		return (MemorySegment) VH_ALLOCATOR.get(segment(), 0L);
+		return address((MemorySegment) VH_ALLOCATOR.get(segment(), 0L));
 	}
 
 	/**

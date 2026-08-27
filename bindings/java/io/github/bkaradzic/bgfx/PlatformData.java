@@ -21,6 +21,8 @@ import java.lang.invoke.VarHandle;
 import java.util.Objects;
 
 import io.github.bkaradzic.bgfx.util.NativeObject;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import static io.github.bkaradzic.bgfx.BGFX.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
@@ -28,6 +30,7 @@ import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 /**
  * Platform data.
  */
+@NullMarked
 public final class PlatformData extends NativeObject {
 	/**
 	 * Native C structure layout.
@@ -75,7 +78,7 @@ public final class PlatformData extends NativeObject {
 	 * @return the field value
 	 */
 	public MemorySegment ndt() {
-		return (MemorySegment) VH_NDT.get(segment(), 0L);
+		return address((MemorySegment) VH_NDT.get(segment(), 0L));
 	}
 
 	/**
@@ -92,7 +95,7 @@ public final class PlatformData extends NativeObject {
 	 * @return the field value
 	 */
 	public MemorySegment nwh() {
-		return (MemorySegment) VH_NWH.get(segment(), 0L);
+		return address((MemorySegment) VH_NWH.get(segment(), 0L));
 	}
 
 	/**
@@ -109,7 +112,7 @@ public final class PlatformData extends NativeObject {
 	 * @return the field value
 	 */
 	public MemorySegment context() {
-		return (MemorySegment) VH_CONTEXT.get(segment(), 0L);
+		return address((MemorySegment) VH_CONTEXT.get(segment(), 0L));
 	}
 
 	/**
@@ -125,7 +128,7 @@ public final class PlatformData extends NativeObject {
 	 * @return the field value
 	 */
 	public MemorySegment queue() {
-		return (MemorySegment) VH_QUEUE.get(segment(), 0L);
+		return address((MemorySegment) VH_QUEUE.get(segment(), 0L));
 	}
 
 	/**
@@ -142,7 +145,7 @@ public final class PlatformData extends NativeObject {
 	 * @return the field value
 	 */
 	public MemorySegment backBuffer() {
-		return (MemorySegment) VH_BACKBUFFER.get(segment(), 0L);
+		return address((MemorySegment) VH_BACKBUFFER.get(segment(), 0L));
 	}
 
 	/**
@@ -159,7 +162,7 @@ public final class PlatformData extends NativeObject {
 	 * @return the field value
 	 */
 	public MemorySegment backBufferDS() {
-		return (MemorySegment) VH_BACKBUFFERDS.get(segment(), 0L);
+		return address((MemorySegment) VH_BACKBUFFERDS.get(segment(), 0L));
 	}
 
 	/**

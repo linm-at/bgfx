@@ -21,6 +21,8 @@ import java.lang.invoke.VarHandle;
 import java.util.Objects;
 
 import io.github.bkaradzic.bgfx.util.NativeObject;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import static io.github.bkaradzic.bgfx.BGFX.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
@@ -32,6 +34,7 @@ import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
  * Every field defaults to zero, and zero always means "the natural whole".
  * {@code { .handle = tex }} therefore addresses all of mip 0.
  */
+@NullMarked
 public final class TextureRegion extends NativeObject {
 	/**
 	 * Native C structure layout.
@@ -220,7 +223,7 @@ public final class TextureRegion extends NativeObject {
 	public final void init(TextureHandle _handle, short _x, short _y, short _width, short _height) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_TEXTURE_REGION_INIT).invokeExact(segment(), _handle.allocate(arena), _x, _y, _width, _height);
+				MH_TEXTURE_REGION_INIT.invokeExact(segment(), _handle.allocate(arena), _x, _y, _width, _height);
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);

@@ -21,6 +21,8 @@ import java.lang.invoke.VarHandle;
 import java.util.Objects;
 
 import io.github.bkaradzic.bgfx.util.NativeObject;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import static io.github.bkaradzic.bgfx.BGFX.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
@@ -28,6 +30,7 @@ import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 /**
  * Transient vertex buffer.
  */
+@NullMarked
 public final class TransientVertexBuffer extends NativeObject {
 	/**
 	 * Native C structure layout.
@@ -72,7 +75,7 @@ public final class TransientVertexBuffer extends NativeObject {
 	 * @return the field value
 	 */
 	public MemorySegment data() {
-		return (MemorySegment) VH_DATA.get(segment(), 0L);
+		return address((MemorySegment) VH_DATA.get(segment(), 0L));
 	}
 
 	/**

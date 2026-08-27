@@ -21,6 +21,8 @@ import java.lang.invoke.VarHandle;
 import java.util.Objects;
 
 import io.github.bkaradzic.bgfx.util.NativeObject;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import static io.github.bkaradzic.bgfx.BGFX.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
@@ -31,6 +33,7 @@ import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
  * {@code bitstream} buffer (access units are stored back-to-back in decode /
  * submission order).
  */
+@NullMarked
 public final class VideoDecoderAu extends NativeObject {
 	/**
 	 * Native C structure layout.

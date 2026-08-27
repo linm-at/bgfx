@@ -21,6 +21,8 @@ import java.lang.invoke.VarHandle;
 import java.util.Objects;
 
 import io.github.bkaradzic.bgfx.util.NativeObject;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import static io.github.bkaradzic.bgfx.BGFX.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
@@ -28,6 +30,7 @@ import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 /**
  * Vertex layout.
  */
+@NullMarked
 public final class VertexLayout extends NativeObject {
 	/**
 	 * Native C structure layout.
@@ -116,7 +119,7 @@ public final class VertexLayout extends NativeObject {
 	 */
 	public final VertexLayout begin(RendererType _rendererType) {
 		try {
-			return new VertexLayout((MemorySegment) downcallHandle(DC_VERTEX_LAYOUT_BEGIN).invokeExact(segment(), _rendererType.ordinal()));
+			return new VertexLayout((MemorySegment) MH_VERTEX_LAYOUT_BEGIN.invokeExact(segment(), _rendererType.ordinal()));
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -135,7 +138,7 @@ public final class VertexLayout extends NativeObject {
 	 */
 	public final VertexLayout add(Attrib _attrib, byte _num, AttribType _type, boolean _normalized, boolean _asInt) {
 		try {
-			return new VertexLayout((MemorySegment) downcallHandle(DC_VERTEX_LAYOUT_ADD).invokeExact(segment(), _attrib.ordinal(), _num, _type.ordinal(), _normalized, _asInt));
+			return new VertexLayout((MemorySegment) MH_VERTEX_LAYOUT_ADD.invokeExact(segment(), _attrib.ordinal(), _num, _type.ordinal(), _normalized, _asInt));
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -151,7 +154,7 @@ public final class VertexLayout extends NativeObject {
 	 */
 	public final void decode(Attrib _attrib, MemorySegment _num, MemorySegment _type, MemorySegment _normalized, MemorySegment _asInt) {
 		try {
-			downcallHandle(DC_VERTEX_LAYOUT_DECODE).invokeExact(segment(), _attrib.ordinal(), address(_num), address(_type), address(_normalized), address(_asInt));
+			MH_VERTEX_LAYOUT_DECODE.invokeExact(segment(), _attrib.ordinal(), address(_num), address(_type), address(_normalized), address(_asInt));
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -164,7 +167,7 @@ public final class VertexLayout extends NativeObject {
 	 */
 	public final boolean has(Attrib _attrib) {
 		try {
-			return (boolean) downcallHandle(DC_VERTEX_LAYOUT_HAS).invokeExact(segment(), _attrib.ordinal());
+			return (boolean) MH_VERTEX_LAYOUT_HAS.invokeExact(segment(), _attrib.ordinal());
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -177,7 +180,7 @@ public final class VertexLayout extends NativeObject {
 	 */
 	public final VertexLayout skip(byte _num) {
 		try {
-			return new VertexLayout((MemorySegment) downcallHandle(DC_VERTEX_LAYOUT_SKIP).invokeExact(segment(), _num));
+			return new VertexLayout((MemorySegment) MH_VERTEX_LAYOUT_SKIP.invokeExact(segment(), _num));
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -188,7 +191,7 @@ public final class VertexLayout extends NativeObject {
 	 */
 	public final void end() {
 		try {
-			downcallHandle(DC_VERTEX_LAYOUT_END).invokeExact(segment());
+			MH_VERTEX_LAYOUT_END.invokeExact(segment());
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -201,7 +204,7 @@ public final class VertexLayout extends NativeObject {
 	 */
 	public final short getOffset(Attrib _attrib) {
 		try {
-			return (short) downcallHandle(DC_VERTEX_LAYOUT_GET_OFFSET).invokeExact(segment(), _attrib.ordinal());
+			return (short) MH_VERTEX_LAYOUT_GET_OFFSET.invokeExact(segment(), _attrib.ordinal());
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -213,7 +216,7 @@ public final class VertexLayout extends NativeObject {
 	 */
 	public final short getStride() {
 		try {
-			return (short) downcallHandle(DC_VERTEX_LAYOUT_GET_STRIDE).invokeExact(segment());
+			return (short) MH_VERTEX_LAYOUT_GET_STRIDE.invokeExact(segment());
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -226,7 +229,7 @@ public final class VertexLayout extends NativeObject {
 	 */
 	public final int getSize(int _num) {
 		try {
-			return (int) downcallHandle(DC_VERTEX_LAYOUT_GET_SIZE).invokeExact(segment(), _num);
+			return (int) MH_VERTEX_LAYOUT_GET_SIZE.invokeExact(segment(), _num);
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}

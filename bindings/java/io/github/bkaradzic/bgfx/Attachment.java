@@ -21,6 +21,8 @@ import java.lang.invoke.VarHandle;
 import java.util.Objects;
 
 import io.github.bkaradzic.bgfx.util.NativeObject;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import static io.github.bkaradzic.bgfx.BGFX.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
@@ -28,6 +30,7 @@ import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 /**
  * Frame buffer texture attachment info.
  */
+@NullMarked
 public final class Attachment extends NativeObject {
 	/**
 	 * Native C structure layout.
@@ -175,7 +178,7 @@ public final class Attachment extends NativeObject {
 	public final void init(TextureHandle _handle, Access _access, short _layer, short _numLayers, short _mip, byte _resolve) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				downcallHandle(DC_ATTACHMENT_INIT).invokeExact(segment(), _handle.allocate(arena), _access.ordinal(), _layer, _numLayers, _mip, _resolve);
+				MH_ATTACHMENT_INIT.invokeExact(segment(), _handle.allocate(arena), _access.ordinal(), _layer, _numLayers, _mip, _resolve);
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);

@@ -8,7 +8,10 @@ import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SegmentAllocator;
 import java.util.Objects;
 
+import org.jspecify.annotations.NullMarked;
+
 /** Base class for native-backed bgfx structures and opaque objects. */
+@NullMarked
 public abstract class NativeObject {
 	private final MemorySegment segment;
 

@@ -21,6 +21,8 @@ import java.lang.invoke.VarHandle;
 import java.util.Objects;
 
 import io.github.bkaradzic.bgfx.util.NativeObject;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import static io.github.bkaradzic.bgfx.BGFX.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
@@ -42,6 +44,7 @@ import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
  * <p>
  * <strong>Attention:</strong> Availability depends on Caps (see: formats).
  */
+@NullMarked
 public enum TextureFormat {
 	/**
 	 * Block Compression 1. 5-bit R, 6-bit G, 5-bit B, 1-bit A. 4 BPP.

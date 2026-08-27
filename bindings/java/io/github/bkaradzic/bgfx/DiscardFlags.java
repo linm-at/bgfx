@@ -21,6 +21,8 @@ import java.lang.invoke.VarHandle;
 import java.util.Objects;
 
 import io.github.bkaradzic.bgfx.util.NativeObject;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import static io.github.bkaradzic.bgfx.BGFX.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
@@ -29,6 +31,7 @@ import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
  * Rendering state discard. When state is preserved in submit, rendering states can be discarded
  * on a finer grain.
  */
+@NullMarked
 public final class DiscardFlags {
 	private DiscardFlags() {
 	}

@@ -1,8 +1,6 @@
 local codegen = require "codegen"
 local idl = codegen.idl "bgfx.idl"
 
--- TODO: Add JSpecify annoations/vendor JSpecify
-
 local java_package = "io.github.bkaradzic.bgfx"
 
 local java_header = [[
@@ -21,20 +19,15 @@ package ]] .. java_package .. [[;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
-import java.lang.foreign.Linker;
-import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SegmentAllocator;
-import java.lang.foreign.StructLayout;
-import java.lang.foreign.SymbolLookup;
 import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodType;
-import java.lang.invoke.VarHandle;
 import java.nio.file.Path;
-import java.util.Objects;
 
 import ]] .. java_package .. [[.util.FFMUtil;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import static ]] .. java_package .. [[.util.FFMUtil.*;
 
@@ -45,29 +38,21 @@ import static ]] .. java_package .. [[.util.FFMUtil.*;
  * Call {@link #load(Path)}, {@link #load(String)}, or {@link #link()} before
  * invoking a native method. Linking resolves every native entry point eagerly.
  */
+@NullMarked
 @SuppressWarnings("restricted")
 public final class BGFX {
 
-	private static volatile MethodHandle[] downcalls;
-	private static volatile MemorySegment[] variadicSymbols;
-	private static Arena libraryArena;
-
 	private BGFX() {
 	}
+
+$native
 
 	/**
 	 * Loads a bgfx shared library and eagerly links all native entry points.
 	 * @param library path to the bgfx shared library
 	 */
-	public static synchronized void load(Path library) {
-		Objects.requireNonNull(library, "library");
-		Arena arena = newLibraryArena();
-		try {
-			installLibrary(SymbolLookup.libraryLookup(library, arena), arena);
-		} catch (RuntimeException | Error ex) {
-			arena.close();
-			throw ex;
-		}
+	public static void load(Path library) {
+		FFMUtil.load(library);
 	}
 
 	/**
@@ -75,141 +60,18 @@ public final class BGFX {
 	 * all native entry points.
 	 * @param library platform-dependent library name
 	 */
-	public static synchronized void load(String library) {
-		Objects.requireNonNull(library, "library");
-		Arena arena = newLibraryArena();
-		try {
-			installLibrary(SymbolLookup.libraryLookup(library, arena), arena);
-		} catch (RuntimeException | Error ex) {
-			arena.close();
-			throw ex;
-		}
+	public static void load(String library) {
+		FFMUtil.load(library);
 	}
 
 	/**
 	 * Eagerly links all native entry points from libraries already made visible
 	 * through {@link System#load} or {@link System#loadLibrary}.
 	 */
-	public static synchronized void link() {
-		ensureUnlinked();
-		installLibrary(SymbolLookup.loaderLookup().or(LINKER.defaultLookup()), null);
+	public static void link() {
+		FFMUtil.link();
 	}
 
-	private static Arena newLibraryArena() {
-		ensureUnlinked();
-		return Arena.ofShared();
-	}
-
-	private static void ensureUnlinked() {
-		if (downcalls != null || libraryArena != null) {
-			throw new IllegalStateException("bgfx native calls are already linked");
-		}
-	}
-
-	private static void installLibrary(SymbolLookup library, Arena arena) {
-		SymbolLookup lookup = library.or(SymbolLookup.loaderLookup()).or(LINKER.defaultLookup());
-		MethodHandle[] handles = linkAll(lookup);
-		MemorySegment[] variadics = linkVariadicSymbols(lookup);
-		libraryArena = arena;
-		variadicSymbols = variadics;
-		downcalls = handles;
-	}
-
-	private static MemorySegment symbol(SymbolLookup lookup, String name) {
-		return lookup.find(name).orElseThrow(
-			() -> new UnsatisfiedLinkError("Unable to find native symbol " + name));
-	}
-
-	private static MethodHandle downcall(
-		SymbolLookup lookup, String name, FunctionDescriptor descriptor) {
-		return LINKER.downcallHandle(symbol(lookup, name), descriptor);
-	}
-
-	static MethodHandle downcallHandle(int index) {
-		MethodHandle[] handles = downcalls;
-		if (handles == null) {
-			throw new IllegalStateException(
-				"bgfx native calls are not linked; call BGFX.load(...) or BGFX.link()");
-		}
-		return handles[index];
-	}
-
-	private static MemorySegment variadicSymbol(int index) {
-		MemorySegment[] addresses = variadicSymbols;
-		if (addresses == null) {
-			throw new IllegalStateException(
-				"bgfx native calls are not linked; call BGFX.load(...) or BGFX.link()");
-		}
-		return addresses[index];
-	}
-
-	static Object invoke(int index, Object... args) {
-		return FFMUtil.invoke(downcallHandle(index), args);
-	}
-
-	/**
-	 * A promoted C variadic argument for {@link #dbgTextPrintf}.
-	 * @param layout promoted native value layout
-	 * @param value boxed value matching the layout carrier
-	 */
-	public record VarArg(ValueLayout layout, Object value) {
-		/** Validates that the value uses a C variadic promoted carrier. */
-		public VarArg {
-			Objects.requireNonNull(layout, "layout");
-			Objects.requireNonNull(value, "value");
-			Class<?> carrier = MethodType.methodType(layout.carrier()).wrap().returnType();
-			if (!carrier.isInstance(value)) {
-				throw new IllegalArgumentException(
-					"Value " + value + " does not match " + layout.carrier().getName());
-			}
-			Class<?> nativeCarrier = layout.carrier();
-			if (nativeCarrier != int.class && nativeCarrier != long.class
-				&& nativeCarrier != double.class && nativeCarrier != MemorySegment.class) {
-				throw new IllegalArgumentException("C variadic value must use its promoted layout");
-			}
-		}
-
-		/**
-		 * Creates a promoted C {@code int} argument.
-		 * @param value argument value
-		 * @return a promoted C {@code int} argument
-		 */
-		public static VarArg ofInt(int value) {
-			return new VarArg(ValueLayout.JAVA_INT, value);
-		}
-
-		/**
-		 * Creates a promoted C {@code long long} argument.
-		 * @param value argument value
-		 * @return a promoted C {@code long long} argument
-		 */
-		public static VarArg ofLong(long value) {
-			return new VarArg(ValueLayout.JAVA_LONG, value);
-		}
-
-		/**
-		 * Creates a promoted C {@code double} argument.
-		 * @param value argument value
-		 * @return a promoted C {@code double} argument
-		 */
-		public static VarArg ofDouble(double value) {
-			return new VarArg(ValueLayout.JAVA_DOUBLE, value);
-		}
-
-		/**
-		 * Creates a C pointer argument.
-		 * @param value pointer value
-		 * @return a C pointer argument
-		 */
-		public static VarArg ofAddress(MemorySegment value) {
-			return new VarArg(ValueLayout.ADDRESS, address(value));
-		}
-	}
-
-	// -------------------------------------------------------------------------
-	// Generated native entry points. Descriptors and methods intentionally live
-	// in this section rather than in per-function holder classes.
-	// -------------------------------------------------------------------------
 $funcs
 
 }
@@ -318,13 +180,13 @@ end
 
 local function java_type(arg, context)
 	if arg.ctype == "..." then
-		return "VarArg..."
+		return "Object..."
 	end
 
 	local details = type_details(arg, context ~= "member")
 	if details.pointers > 0 then
 		if context ~= "member" and details.base == "char" and details.pointers == 1 and details.is_const then
-			return "String"
+			return context == "return" and "@Nullable String" or "String"
 		elseif details.pointers == 1 and details.info and details.info.kind == "struct" then
 			return details.info.java
 		end
@@ -338,6 +200,14 @@ local function java_type(arg, context)
 		return details.info.java
 	end
 	return assert(details.primitive, "Unsupported C type: " .. arg.ctype).java
+end
+
+local function java_parameter_type(arg)
+	local java = java_type(arg, "arg")
+	if arg.default == "NULL" then
+		return "@Nullable " .. java
+	end
+	return java
 end
 
 local function layout_type(arg, array_as_pointer)
@@ -392,7 +262,6 @@ local gen = {}
 local combined
 local downcall_entries
 local variadic_entries
-local emit_downcall_table
 
 local function reset_generator_state()
 	for _, name in ipairs(combined) do
@@ -443,15 +312,6 @@ local function generate_function_section()
 		if body ~= "" then
 			table.insert(tmp, body)
 		end
-	end
-	local co = coroutine.create(emit_downcall_table)
-	while true do
-		local ok, value = coroutine.resume(co)
-		assert(ok, debug.traceback(co, value))
-		if not value then
-			break
-		end
-		table.insert(tmp, value)
 	end
 	return table.concat(tmp, "\n")
 end
@@ -550,6 +410,7 @@ local function FlagBlock(typ, root_indent)
 
 	local name = typ.name .. "Flags"
 	emit_javadoc(typ.comments or { "Constants for " .. typ.name .. " flags." }, root_indent)
+	yield(root_indent .. "@NullMarked")
 	yield(root_indent .. "public final class " .. name .. " {")
 	yield(body_indent .. "private " .. name .. "() {")
 	yield(body_indent .. "}")
@@ -605,7 +466,10 @@ local function emit_comments(func, func_indent)
 				text = arg.comment and table.concat(arg.comment, " ") or "native function argument",
 			})
 		else
-			table.insert(params, { name = "_args", text = "promoted C variadic arguments" })
+			table.insert(params, {
+				name = "_args",
+				text = "variadic arguments; C default argument promotions are applied automatically",
+			})
 		end
 	end
 	local returns
@@ -621,6 +485,7 @@ local function emit_enum(typ, root_indent)
 	root_indent = root_indent or ""
 	local body_indent = root_indent .. "\t"
 	emit_javadoc(typ.comments or { typ.typename .. " values." }, root_indent)
+	yield(root_indent .. "@NullMarked")
 	yield(root_indent .. "public enum " .. typ.typename .. " {")
 	for _, item in ipairs(typ.enum) do
 		local item_name = enum_constant_name(typ, item)
@@ -660,6 +525,7 @@ local function emit_handle(typ, root_indent)
 		table.insert(record_params, { name = "type", text = "native buffer handle tag" })
 	end
 	emit_javadoc(typ.comments or { "Native bgfx handle." }, root_indent, record_params)
+	yield(root_indent .. "@NullMarked")
 	yield(root_indent .. "public record " .. typ.name .. "(" .. fields .. ") {")
 	emit_javadoc({ "Native by-value handle layout." }, body_indent)
 	yield(body_indent .. "public static final StructLayout LAYOUT = cStruct(\"" .. typ.cname .. "\",")
@@ -785,6 +651,7 @@ local function emit_funcptr(typ, root_indent)
 	end
 	local ret = callback_carrier_type(typ.ret)
 	emit_javadoc(typ.comments or { "Native callback." }, root_indent)
+	yield(root_indent .. "@NullMarked")
 	yield(root_indent .. "@FunctionalInterface")
 	yield(root_indent .. "@SuppressWarnings(\"restricted\")")
 	yield(root_indent .. "public interface " .. typ.name .. " {")
@@ -835,7 +702,7 @@ local function emit_member_accessor(member, body_indent)
 			getter = "new " .. details.info.java .. "((MemorySegment) " .. field_handle .. ".get(segment(), 0L))"
 			setter = field_handle .. ".set(segment(), 0L, address(value))"
 		else
-			getter = "(MemorySegment) " .. field_handle .. ".get(segment(), 0L)"
+			getter = "address((MemorySegment) " .. field_handle .. ".get(segment(), 0L))"
 			setter = field_handle .. ".set(segment(), 0L, address(value))"
 		end
 	elseif details.info then
@@ -849,7 +716,7 @@ local function emit_member_accessor(member, body_indent)
 			getter = "new " .. details.info.java .. "(slice(" .. field_handle .. ", segment()))"
 			setter = "slice(" .. field_handle .. ", segment()).copyFrom(value.segment())"
 		else
-			getter = "(MemorySegment) " .. field_handle .. ".get(segment(), 0L)"
+			getter = "address((MemorySegment) " .. field_handle .. ".get(segment(), 0L))"
 			setter = field_handle .. ".set(segment(), 0L, address(value))"
 		end
 	else
@@ -938,6 +805,7 @@ function converter.types(params)
 		FlagBlock(typ, root_indent)
 	elseif typ.struct ~= nil then
 		emit_javadoc(typ.comments or { typ.name .. " native structure." }, root_indent)
+		yield(root_indent .. "@NullMarked")
 		yield(root_indent .. "public final class " .. typ.name .. " extends NativeObject {")
 		emit_struct_body(typ, funcs, root_indent .. "\t")
 		yield(root_indent .. "}")
@@ -1033,10 +901,10 @@ local function native_call(func)
 	local args = native_call_arguments(func)
 	local suffix = #args == 0 and "" or ", " .. table.concat(args, ", ")
 	if function_uses_exact_invoke(func) then
-		return "downcallHandle(DC_" .. constant_name(func.cname) .. ").invokeExact("
+		return "MH_" .. constant_name(func.cname) .. ".invokeExact("
 			.. table.concat(args, ", ") .. ")"
 	end
-	return "invoke(DC_" .. constant_name(func.cname) .. suffix .. ")"
+	return "invoke(MH_" .. constant_name(func.cname) .. suffix .. ")"
 end
 
 local function return_statement(func, call)
@@ -1047,7 +915,7 @@ local function return_statement(func, call)
 		elseif details.pointers == 1 and details.info and details.info.kind == "struct" then
 			return "return new " .. details.info.java .. "((MemorySegment) " .. call .. ");"
 		end
-		return "return (MemorySegment) " .. call .. ";"
+		return "return address((MemorySegment) " .. call .. ");"
 	elseif details.info then
 		if details.info.kind == "enum" then
 			return "return " .. details.info.java .. ".fromValue((int) " .. call .. ");"
@@ -1056,7 +924,7 @@ local function return_statement(func, call)
 		elseif details.info.kind == "struct" then
 			return "return new " .. details.info.java .. "((MemorySegment) " .. call .. ");"
 		end
-		return "return (MemorySegment) " .. call .. ";"
+		return "return address((MemorySegment) " .. call .. ");"
 	end
 	local primitive = assert(details.primitive, "Unsupported return type: " .. func.ret.ctype)
 	if primitive.java == "void" then
@@ -1064,7 +932,7 @@ local function return_statement(func, call)
 	elseif primitive.uintptr then
 		return "return javaUintptr(" .. call .. ");"
 	elseif primitive.opaque then
-		return "return (MemorySegment) " .. call .. ";"
+		return "return address((MemorySegment) " .. call .. ");"
 	end
 	return "return (" .. primitive.java .. ") " .. call .. ";"
 end
@@ -1073,11 +941,11 @@ local function public_parameters(func, variadic)
 	local args = {}
 	for _, arg in ipairs(func.args) do
 		if arg.ctype ~= "..." then
-			table.insert(args, java_type(arg, "arg") .. " " .. arg.name)
+			table.insert(args, java_parameter_type(arg) .. " " .. arg.name)
 		end
 	end
 	if variadic then
-		table.insert(args, "VarArg... _args")
+		table.insert(args, "Object... _args")
 	end
 	return table.concat(args, ", ")
 end
@@ -1115,16 +983,14 @@ local function emit_variadic_wrapper(func, func_indent)
 	yield(func_indent .. "public static final " .. java_type(func.ret, "return") .. " " .. camel_name(func.cname)
 		.. "(" .. public_parameters(func, true) .. ") {")
 	local body = func_indent .. "\t"
-	yield(body .. "Objects.requireNonNull(_args, \"_args\");")
 	yield(body .. "try (Arena arena = Arena.ofConfined()) {")
-	yield(body .. "\tMemoryLayout[] layouts = new MemoryLayout[_args.length];")
 	local fixed_count = 0
 	for _, arg in ipairs(func.args) do
 		if arg.ctype ~= "..." then
 			fixed_count = fixed_count + 1
 		end
 	end
-	yield(body .. "\tObject[] nativeArgs = new Object[" .. fixed_count .. " + _args.length];")
+	yield(body .. "\tObject[] nativeArgs = new Object[" .. fixed_count .. "];")
 	local native_index = 0
 	for _, arg in ipairs(func.args) do
 		if arg.ctype ~= "..." then
@@ -1132,22 +998,15 @@ local function emit_variadic_wrapper(func, func_indent)
 			native_index = native_index + 1
 		end
 	end
-	yield(body .. "\tfor (int index = 0; index < _args.length; ++index) {")
-	yield(body .. "\t\tlayouts[index] = _args[index].layout();")
-	yield(body .. "\t\tnativeArgs[" .. fixed_count .. " + index] = _args[index].value();")
-	yield(body .. "\t}")
 	local fixed_args = {}
 	for _, arg in ipairs(func.args) do
 		if arg.ctype ~= "..." then
 			table.insert(fixed_args, arg)
 		end
 	end
-	yield(body .. "\tFunctionDescriptor descriptor = " .. descriptor_expression(func.ret, fixed_args)
-		.. ".appendArgumentLayouts(layouts);")
-	yield(body .. "\tMethodHandle handle = LINKER.downcallHandle(")
-	yield(body .. "\t\tvariadicSymbol(VC_" .. constant_name(func.cname) .. "),")
-	yield(body .. "\t\tdescriptor, Linker.Option.firstVariadicArg(" .. fixed_count .. "));")
-	yield(body .. "\t" .. return_statement(func, "FFMUtil.invoke(handle, nativeArgs)"))
+	local call = "invokeVariadic(VS_" .. constant_name(func.cname) .. ", "
+		.. descriptor_expression(func.ret, fixed_args) .. ", nativeArgs, _args)"
+	yield(body .. "\t" .. return_statement(func, call))
 	yield(body .. "}")
 	yield(func_indent .. "}")
 end
@@ -1169,37 +1028,26 @@ local function emit_native_descriptor(func)
 	if func.vararg then
 		local index = #variadic_entries
 		table.insert(variadic_entries, { func = func, index = index })
-		yield("\tprivate static final int VC_" .. constant_name(func.cname) .. " = " .. index .. ";")
 	else
 		local index = #downcall_entries
 		table.insert(downcall_entries, { func = func, index = index })
-		yield("\tstatic final int DC_" .. constant_name(func.cname) .. " = " .. index .. ";")
-		yield("\tprivate static final FunctionDescriptor FD_" .. constant_name(func.cname)
-			.. " = " .. function_descriptor(func) .. ";")
 	end
 end
 
-emit_downcall_table = function()
-	yield("")
-	yield("\tprivate static MethodHandle[] linkAll(SymbolLookup lookup) {")
-	yield("\t\tMethodHandle[] handles = new MethodHandle[" .. #downcall_entries .. "];")
+local function native_section()
+	local lines = {}
 	for _, entry in ipairs(downcall_entries) do
 		local name = constant_name(entry.func.cname)
-		yield("\t\thandles[DC_" .. name .. "] = downcall(lookup, \"bgfx_"
-			.. entry.func.cname .. "\", FD_" .. name .. ");")
+		table.insert(lines, "\tstatic final MethodHandle MH_" .. name .. " = downcall(")
+		table.insert(lines, "\t\t\"bgfx_" .. entry.func.cname .. "\", "
+			.. function_descriptor(entry.func) .. ");")
 	end
-	yield("\t\treturn handles;")
-	yield("\t}")
-	yield("")
-	yield("\tprivate static MemorySegment[] linkVariadicSymbols(SymbolLookup lookup) {")
-	yield("\t\tMemorySegment[] addresses = new MemorySegment[" .. #variadic_entries .. "];")
 	for _, entry in ipairs(variadic_entries) do
 		local name = constant_name(entry.func.cname)
-		yield("\t\taddresses[VC_" .. name .. "] = symbol(lookup, \"bgfx_"
-			.. entry.func.cname .. "\");")
+		table.insert(lines, "\tstatic final MethodHandle VS_" .. name
+			.. " = variadicSymbol(\"bgfx_" .. entry.func.cname .. "\");")
 	end
-	yield("\t\treturn addresses;")
-	yield("\t}")
+	return table.concat(lines, "\n")
 end
 
 function converter.funcs(params)
@@ -1330,6 +1178,8 @@ import java.lang.invoke.VarHandle;
 import java.util.Objects;
 
 import ]] .. java_package .. [[.util.NativeObject;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import static ]] .. java_package .. [[.BGFX.*;
 import static ]] .. java_package .. [[.util.FFMUtil.*;
@@ -1357,7 +1207,7 @@ function gen.files()
 		end
 	end
 
-	local sections = { funcs = generate_function_section() }
+	local sections = { funcs = generate_function_section(), native = native_section() }
 	files["BGFX.java"] = (java_template:gsub("$(%l+)", sections))
 	return files
 end
@@ -1400,7 +1250,10 @@ local function clear_generated_output(outputdir)
 	end
 
 	for _, filename in ipairs(os.matchfiles(outputdir .. "/*")) do
-		remove_file(filename)
+		local normalized = filename:gsub("\\", "/"):gsub("/+$", "")
+		if normalized:match("([^/]+)$") ~= "package-info.java" then
+			remove_file(filename)
+		end
 	end
 	for _, directory in ipairs(os.matchdirs(outputdir .. "/*")) do
 		local normalized = directory:gsub("\\", "/"):gsub("/+$", "")

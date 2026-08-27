@@ -21,6 +21,8 @@ import java.lang.invoke.VarHandle;
 import java.util.Objects;
 
 import io.github.bkaradzic.bgfx.util.NativeObject;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import static io.github.bkaradzic.bgfx.BGFX.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
@@ -34,6 +36,7 @@ import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
  * layout, color metadata) is parsed out of the codec parameter sets at
  * create time.
  */
+@NullMarked
 public final class VideoDecoderInit extends NativeObject {
 	/**
 	 * Native C structure layout.
@@ -110,7 +113,7 @@ public final class VideoDecoderInit extends NativeObject {
 	 * @return the field value
 	 */
 	public MemorySegment parameterSets() {
-		return (MemorySegment) VH_PARAMETERSETS.get(segment(), 0L);
+		return address((MemorySegment) VH_PARAMETERSETS.get(segment(), 0L));
 	}
 
 	/**
