@@ -9,6 +9,7 @@ import java.lang.foreign.SegmentAllocator;
 import java.util.Objects;
 
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.NonNull;
 
 /** Base class for native-backed bgfx structures and opaque objects. */
 @NullMarked
@@ -55,5 +56,23 @@ public abstract class NativeObject {
 	 */
 	public final boolean isNull() {
 		return segment.address() == 0;
+	}
+
+	@Override
+	public final boolean equals(Object other) {
+		return this == other
+			|| other != null
+			&& getClass() == other.getClass()
+			&& segment.equals(((NativeObject) other).segment);
+	}
+
+	@Override
+	public final int hashCode() {
+		return segment().hashCode();
+	}
+
+	@Override
+	public String toString() {
+		return segment().toString();
 	}
 }
