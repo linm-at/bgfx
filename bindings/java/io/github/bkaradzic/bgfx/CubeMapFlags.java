@@ -19,6 +19,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
 import java.util.Objects;
+import java.lang.AutoCloseable;
 
 import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;

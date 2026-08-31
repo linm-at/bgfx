@@ -24,7 +24,7 @@ import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 
 
 /**
- * Modern Java FFM bindings for the bgfx C99 API.
+ * Java FFM bindings for the bgfx C99 API.
  * <p>
  * Call {@link #load(Path)}, {@link #load(String)}, or {@link #link()} before
  * invoking a native method. Linking resolves every native entry point eagerly.

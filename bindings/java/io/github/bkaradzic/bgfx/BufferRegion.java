@@ -19,6 +19,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
 import java.util.Objects;
+import java.lang.AutoCloseable;
 
 import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
@@ -92,7 +93,7 @@ public final class BufferRegion extends NativeObject {
 	 * @param value the new field value
 	 */
 	public void handle(BufferHandle value) {
-		value.write(slice(MH_HANDLE, segment()));
+		value.writeTagged(slice(MH_HANDLE, segment()));
 	}
 
 	/**
@@ -188,7 +189,7 @@ public final class BufferRegion extends NativeObject {
 	public final void initBuffer(BufferHandle _handle, int _offset, int _size) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
-				MH_BUFFER_REGION_INIT_BUFFER.invokeExact(segment(), _handle.allocate(arena), _offset, _size);
+				MH_BUFFER_REGION_INIT_BUFFER.invokeExact(segment(), _handle.allocateTagged(arena), _offset, _size);
 			}
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);

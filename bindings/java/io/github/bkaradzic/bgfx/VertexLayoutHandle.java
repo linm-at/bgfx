@@ -19,6 +19,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
 import java.util.Objects;
+import java.lang.AutoCloseable;
 
 import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
@@ -32,7 +33,7 @@ import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
  * @param idx native handle index
  */
 @NullMarked
-public record VertexLayoutHandle(short idx) {
+public record VertexLayoutHandle(short idx) implements AutoCloseable {
 	/**
 	 * Native by-value handle layout.
 	 */
@@ -81,5 +82,13 @@ public record VertexLayoutHandle(short idx) {
 	public static VertexLayoutHandle read(MemorySegment segment) {
 		segment = view(segment, LAYOUT);
 		return new VertexLayoutHandle((short) VH_IDX.get(segment, 0L));
+	}
+
+	/**
+	 * Destroys this native handle.
+	 */
+	@Override
+	public void close() {
+		BGFX.destroyVertexLayout(this);
 	}
 }

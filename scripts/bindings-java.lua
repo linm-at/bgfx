@@ -33,7 +33,7 @@ import static ]] .. java_package .. [[.util.FFMUtil.*;
 
 
 /**
- * Modern Java FFM bindings for the bgfx C99 API.
+ * Java FFM bindings for the bgfx C99 API.
  * <p>
  * Call {@link #load(Path)}, {@link #load(String)}, or {@link #link()} before
  * invoking a native method. Linking resolves every native entry point eagerly.
@@ -112,6 +112,7 @@ local primitive_types = {
 
 local ctype_info = {}
 local enum_counts = {}
+local tagged_handle_members = {}
 
 local function java_type_name(typ)
 	if typ.enum then
@@ -143,6 +144,19 @@ for _, typ in ipairs(idl.types) do
 				kind = kind,
 				java = java_type_name(typ),
 				typ = typ,
+			}
+		end
+	end
+end
+
+for _, typ in ipairs(idl.types) do
+	if typ.handle and typ.tagged then
+		for index, source in ipairs(typ.tagged) do
+			assert(tagged_handle_members[source] == nil,
+				"Handle belongs to more than one tagged handle: " .. source)
+			tagged_handle_members[source] = {
+				parent = typ,
+				tag = index - 1,
 			}
 		end
 	end
@@ -515,47 +529,109 @@ local function emit_enum(typ, root_indent)
 	yield(root_indent .. "}")
 end
 
-local function emit_handle(typ, root_indent)
+local function emit_tagged_handle(typ, root_indent)
 	root_indent = root_indent or ""
 	local body_indent = root_indent .. "\t"
-	local tagged = typ.tagged ~= nil
-	local fields = tagged and "short idx, short type" or "short idx"
-	local record_params = { { name = "idx", text = "native handle index" } }
-	if tagged then
-		table.insert(record_params, { name = "type", text = "native buffer handle tag" })
+	local permits = {}
+	for _, source in ipairs(typ.tagged) do
+		table.insert(permits, source)
 	end
-	emit_javadoc(typ.comments or { "Native bgfx handle." }, root_indent, record_params)
+	emit_javadoc(typ.comments or { "Native tagged bgfx handle." }, root_indent)
 	yield(root_indent .. "@NullMarked")
-	yield(root_indent .. "public record " .. typ.name .. "(" .. fields .. ") {")
+	yield(root_indent .. "public sealed interface " .. typ.name)
+	yield(root_indent .. "\tpermits " .. table.concat(permits, ", ") .. " {")
+	emit_javadoc({ "Native by-value handle layout." }, body_indent)
+	yield(body_indent .. "StructLayout LAYOUT = cStruct(\"" .. typ.cname .. "\",")
+	yield(body_indent .. "\tValueLayout.JAVA_SHORT.withName(\"idx\"),")
+	yield(body_indent .. "\tValueLayout.JAVA_SHORT.withName(\"type\"));")
+	emit_javadoc({ "Native handle-index field accessor." }, body_indent)
+	yield(body_indent .. "VarHandle VH_IDX = LAYOUT.varHandle(")
+	yield(body_indent .. "\tMemoryLayout.PathElement.groupElement(\"idx\"));")
+	emit_javadoc({ "Native handle-type field accessor." }, body_indent)
+	yield(body_indent .. "VarHandle VH_TYPE = LAYOUT.varHandle(")
+	yield(body_indent .. "\tMemoryLayout.PathElement.groupElement(\"type\"));")
+	yield("")
+	emit_javadoc({ "Invalid handle sentinel." }, body_indent)
+	yield(body_indent .. typ.name .. " INVALID = " .. typ.tagged[1] .. ".INVALID;")
+	yield("")
+	emit_javadoc({ "Returns the native handle index." }, body_indent, nil, "the native handle index")
+	yield(body_indent .. "short idx();")
+	yield("")
+	emit_javadoc({ "Returns the native handle type tag." }, body_indent, nil, "the native handle type tag")
+	yield(body_indent .. "short type();")
+	yield("")
+	emit_javadoc({ "Returns whether this handle is valid." }, body_indent, nil,
+		"{@code true} when the handle index is not {@code UINT16_MAX}")
+	yield(body_indent .. "default boolean isValid() {")
+	yield(body_indent .. "\treturn idx() != (short) 0xffff;")
+	yield(body_indent .. "}")
+	yield("")
+	emit_javadoc({ "Allocates and writes the native tagged handle representation." }, body_indent,
+		{ { name = "allocator", text = "the destination allocator" } }, "the allocated native segment")
+	yield(body_indent .. "default MemorySegment allocateTagged(SegmentAllocator allocator) {")
+	yield(body_indent .. "\tMemorySegment segment = allocator.allocate(LAYOUT);")
+	yield(body_indent .. "\twriteTagged(segment);")
+	yield(body_indent .. "\treturn segment;")
+	yield(body_indent .. "}")
+	yield("")
+	emit_javadoc({ "Writes this handle to an existing native tagged handle segment." }, body_indent,
+		{ { name = "segment", text = "the destination segment" } })
+	yield(body_indent .. "default void writeTagged(MemorySegment segment) {")
+	yield(body_indent .. "\tsegment = view(segment, LAYOUT);")
+	yield(body_indent .. "\tVH_IDX.set(segment, 0L, idx());")
+	yield(body_indent .. "\tVH_TYPE.set(segment, 0L, type());")
+	yield(body_indent .. "}")
+	yield("")
+	emit_javadoc({ "Reads a tagged handle from native memory." }, body_indent,
+		{ { name = "segment", text = "the source segment" } }, "the decoded handle")
+	yield(body_indent .. "static " .. typ.name .. " read(MemorySegment segment) {")
+	yield(body_indent .. "\tsegment = view(segment, LAYOUT);")
+	yield(body_indent .. "\tshort idx = (short) VH_IDX.get(segment, 0L);")
+	yield(body_indent .. "\tshort type = (short) VH_TYPE.get(segment, 0L);")
+	yield(body_indent .. "\treturn switch (type) {")
+	for index, source in ipairs(typ.tagged) do
+		yield(string.format(body_indent .. "\t\tcase %d -> new %s(idx);", index - 1, source))
+	end
+	yield(body_indent .. "\t\tdefault -> throw new IllegalArgumentException(\"Unknown " .. typ.name
+		.. " type tag: \" + Short.toUnsignedInt(type));")
+	yield(body_indent .. "\t};")
+	yield(body_indent .. "}")
+	yield(root_indent .. "}")
+end
+
+local function emit_handle(typ, root_indent)
+	if typ.tagged then
+		emit_tagged_handle(typ, root_indent)
+		return
+	end
+
+	root_indent = root_indent or ""
+	local body_indent = root_indent .. "\t"
+	local tagged_member = tagged_handle_members[typ.name]
+	local interfaces = { "AutoCloseable" }
+	if tagged_member then
+		table.insert(interfaces, tagged_member.parent.name)
+	end
+	emit_javadoc(typ.comments or { "Native bgfx handle." }, root_indent,
+		{ { name = "idx", text = "native handle index" } })
+	yield(root_indent .. "@NullMarked")
+	yield(root_indent .. "public record " .. typ.name .. "(short idx) implements "
+		.. table.concat(interfaces, ", ") .. " {")
 	emit_javadoc({ "Native by-value handle layout." }, body_indent)
 	yield(body_indent .. "public static final StructLayout LAYOUT = cStruct(\"" .. typ.cname .. "\",")
-	if tagged then
-		yield(body_indent .. "\tValueLayout.JAVA_SHORT.withName(\"idx\"),")
-		yield(body_indent .. "\tValueLayout.JAVA_SHORT.withName(\"type\"));")
-	else
-		yield(body_indent .. "\tValueLayout.JAVA_SHORT.withName(\"idx\"));")
-	end
+	yield(body_indent .. "\tValueLayout.JAVA_SHORT.withName(\"idx\"));")
 	yield(body_indent .. "private static final VarHandle VH_IDX = LAYOUT.varHandle(")
 	yield(body_indent .. "\tMemoryLayout.PathElement.groupElement(\"idx\"));")
-	if tagged then
-		yield(body_indent .. "private static final VarHandle VH_TYPE = LAYOUT.varHandle(")
-		yield(body_indent .. "\tMemoryLayout.PathElement.groupElement(\"type\"));")
-		emit_javadoc({ "Invalid handle sentinel." }, body_indent)
-		yield(body_indent .. "public static final " .. typ.name .. " INVALID =")
-		yield(body_indent .. "\tnew " .. typ.name .. "((short) 0xffff, (short) 0xffff);")
-	else
-		emit_javadoc({ "Invalid handle sentinel." }, body_indent)
-		yield(body_indent .. "public static final " .. typ.name .. " INVALID = new " .. typ.name .. "((short) 0xffff);")
-	end
-	if tagged then
-		for index, source in ipairs(typ.tagged) do
-			yield("")
-			emit_javadoc({ "Creates a tagged buffer handle." }, body_indent,
-				{ { name = "handle", text = "the source " .. source } })
-			yield(body_indent .. "public " .. typ.name .. "(" .. source .. " handle) {")
-			yield(string.format(body_indent .. "\tthis(handle.idx(), (short) %d);", index - 1))
-			yield(body_indent .. "}")
-		end
+	emit_javadoc({ "Invalid handle sentinel." }, body_indent)
+	yield(body_indent .. "public static final " .. typ.name .. " INVALID = new " .. typ.name .. "((short) 0xffff);")
+	if tagged_member then
+		yield("")
+		emit_javadoc({ "Returns this handle's native tagged-handle type." }, body_indent, nil,
+			"the native tagged-handle type")
+		yield(body_indent .. "@Override")
+		yield(body_indent .. "public short type() {")
+		yield(string.format(body_indent .. "\treturn (short) %d;", tagged_member.tag))
+		yield(body_indent .. "}")
 	end
 	yield("")
 	emit_javadoc({ "Returns whether this handle is valid." }, body_indent, nil,
@@ -577,22 +653,19 @@ local function emit_handle(typ, root_indent)
 	yield(body_indent .. "public void write(MemorySegment segment) {")
 	yield(body_indent .. "\tsegment = view(segment, LAYOUT);")
 	yield(body_indent .. "\tVH_IDX.set(segment, 0L, idx);")
-	if tagged then
-		yield(body_indent .. "\tVH_TYPE.set(segment, 0L, type);")
-	end
 	yield(body_indent .. "}")
 	yield("")
 	emit_javadoc({ "Reads a by-value handle from native memory." }, body_indent,
 		{ { name = "segment", text = "the source segment" } }, "the decoded handle")
 	yield(body_indent .. "public static " .. typ.name .. " read(MemorySegment segment) {")
 	yield(body_indent .. "\tsegment = view(segment, LAYOUT);")
-	if tagged then
-		yield(body_indent .. "\treturn new " .. typ.name .. "(")
-		yield(body_indent .. "\t\t(short) VH_IDX.get(segment, 0L),")
-		yield(body_indent .. "\t\t(short) VH_TYPE.get(segment, 0L));")
-	else
-		yield(body_indent .. "\treturn new " .. typ.name .. "((short) VH_IDX.get(segment, 0L));")
-	end
+	yield(body_indent .. "\treturn new " .. typ.name .. "((short) VH_IDX.get(segment, 0L));")
+	yield(body_indent .. "}")
+	yield("")
+	emit_javadoc({ "Destroys this native handle." }, body_indent)
+	yield(body_indent .. "@Override")
+	yield(body_indent .. "public void close() {")
+	yield(body_indent .. "\tBGFX.destroy" .. typ.name:gsub("Handle$", "") .. "(this);")
 	yield(body_indent .. "}")
 	yield(root_indent .. "}")
 end
@@ -711,7 +784,11 @@ local function emit_member_accessor(member, body_indent)
 			setter = field_handle .. ".set(segment(), 0L, value.ordinal())"
 		elseif details.info.kind == "handle" then
 			getter = details.info.java .. ".read(slice(" .. field_handle .. ", segment()))"
-			setter = "value.write(slice(" .. field_handle .. ", segment()))"
+			if details.info.typ.tagged then
+				setter = "value.writeTagged(slice(" .. field_handle .. ", segment()))"
+			else
+				setter = "value.write(slice(" .. field_handle .. ", segment()))"
+			end
 		elseif details.info.kind == "struct" then
 			getter = "new " .. details.info.java .. "(slice(" .. field_handle .. ", segment()))"
 			setter = "slice(" .. field_handle .. ", segment()).copyFrom(value.segment())"
@@ -834,6 +911,9 @@ local function native_argument(arg, name)
 		if details.info.kind == "enum" then
 			return name .. ".ordinal()"
 		elseif details.info.kind == "handle" then
+			if details.info.typ.tagged then
+				return name .. ".allocateTagged(arena)"
+			end
 			return name .. ".allocate(arena)"
 		elseif details.info.kind == "struct" then
 			return name .. ".segment()"
@@ -1176,6 +1256,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
 import java.util.Objects;
+import java.lang.AutoCloseable;
 
 import ]] .. java_package .. [[.util.NativeObject;
 import org.jspecify.annotations.NullMarked;

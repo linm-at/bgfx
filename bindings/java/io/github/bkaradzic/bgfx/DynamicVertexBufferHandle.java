@@ -19,6 +19,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
 import java.util.Objects;
+import java.lang.AutoCloseable;
 
 import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
@@ -32,7 +33,7 @@ import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
  * @param idx native handle index
  */
 @NullMarked
-public record DynamicVertexBufferHandle(short idx) {
+public record DynamicVertexBufferHandle(short idx) implements AutoCloseable, BufferHandle {
 	/**
 	 * Native by-value handle layout.
 	 */
@@ -44,6 +45,15 @@ public record DynamicVertexBufferHandle(short idx) {
 	 * Invalid handle sentinel.
 	 */
 	public static final DynamicVertexBufferHandle INVALID = new DynamicVertexBufferHandle((short) 0xffff);
+
+	/**
+	 * Returns this handle's native tagged-handle type.
+	 * @return the native tagged-handle type
+	 */
+	@Override
+	public short type() {
+		return (short) 1;
+	}
 
 	/**
 	 * Returns whether this handle is valid.
@@ -81,5 +91,13 @@ public record DynamicVertexBufferHandle(short idx) {
 	public static DynamicVertexBufferHandle read(MemorySegment segment) {
 		segment = view(segment, LAYOUT);
 		return new DynamicVertexBufferHandle((short) VH_IDX.get(segment, 0L));
+	}
+
+	/**
+	 * Destroys this native handle.
+	 */
+	@Override
+	public void close() {
+		BGFX.destroyDynamicVertexBuffer(this);
 	}
 }
