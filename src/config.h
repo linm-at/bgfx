@@ -193,7 +193,7 @@
 #	define BGFX_CONFIG_GL_USE_WGL 0
 #endif // BGFX_CONFIG_GL_USE_WGL
 
-// Enable hardware video decoder.
+/// Enable hardware video decoder.
 #ifndef BGFX_CONFIG_VIDEO
 #	define BGFX_CONFIG_VIDEO 1
 #endif // BGFX_CONFIG_VIDEO
@@ -247,19 +247,17 @@
 #	define BGFX_CONFIG_RENDERER_VULKAN_ROBUST_BUFFER_ACCESS 0
 #endif // BGFX_CONFIG_RENDERER_VULKAN_ROBUST_BUFFER_ACCESS
 
-/// Enable use of tinystl instead of std containers for internal data
-/// structures. Default is 1 (enabled). Reduces binary size and avoids
-/// std library dependency.
-#ifndef BGFX_CONFIG_USE_TINYSTL
-#	define BGFX_CONFIG_USE_TINYSTL 1
-#endif // BGFX_CONFIG_USE_TINYSTL
+/// Enable debug text.
+#ifndef BGFX_CONFIG_DEBUG_TEXT
+#	define BGFX_CONFIG_DEBUG_TEXT 1
+#endif // BGFX_CONFIG_DEBUG_TEXT
 
 /// Debug text maximum scale factor.
 #ifndef BGFX_CONFIG_DEBUG_TEXT_MAX_SCALE
 #	define BGFX_CONFIG_DEBUG_TEXT_MAX_SCALE 4
 #endif // BGFX_CONFIG_DEBUG_TEXT_MAX_SCALE
 
-/// Enable nVidia PerfHUD integration.
+/// Enable NVIDIA PerfHUD integration.
 #ifndef BGFX_CONFIG_DEBUG_PERFHUD
 #	define BGFX_CONFIG_DEBUG_PERFHUD 0
 #endif // BGFX_CONFIG_DEBUG_NVPERFHUD
@@ -478,7 +476,10 @@ static_assert(BGFX_CONFIG_MAX_VERTEX_STREAMS < 32, "Must be less than 32!");
 
 /// Minimum initial size in bytes of the resource command buffer (pre/post
 /// render commands for resource creation and updates). Default is 64 KB.
-/// The buffer grows as needed.
+/// The buffer grows as needed. After `Init::Limits::numDrawCallPeakFrames`
+/// of observing the high-water mark it shrinks toward that peak, but not
+/// below this minimum. Set `numDrawCallPeakFrames` to 0 to keep the largest
+/// size for the lifetime of the context.
 #ifndef BGFX_CONFIG_MIN_RESOURCE_COMMAND_BUFFER_SIZE
 #	define BGFX_CONFIG_MIN_RESOURCE_COMMAND_BUFFER_SIZE (64<<10)
 #endif // BGFX_CONFIG_MIN_RESOURCE_COMMAND_BUFFER_SIZE
@@ -601,20 +602,20 @@ static_assert(BGFX_CONFIG_MAX_VERTEX_STREAMS < 32, "Must be less than 32!");
 #endif // BGFX_CONFIG_DEFAULT_MAX_ENCODERS
 
 /// Maximum number of back buffers for swap chain. Default is 4.
-/// The actual number used is specified via bgfx::Resolution::numBackBuffers.
+/// The actual number used is specified via bgfx::SwapChain::numBackBuffers.
 #ifndef BGFX_CONFIG_MAX_BACK_BUFFERS
 #	define BGFX_CONFIG_MAX_BACK_BUFFERS 4
 #endif // BGFX_CONFIG_MAX_BACK_BUFFERS
 
 /// Maximum frame latency (number of frames that can be queued ahead).
 /// Default is 3. The actual value is specified via
-/// bgfx::Resolution::maxFrameLatency.
+/// bgfx::SwapChain::maxFrameLatency.
 #ifndef BGFX_CONFIG_MAX_FRAME_LATENCY
 #	define BGFX_CONFIG_MAX_FRAME_LATENCY 3
 #endif // BGFX_CONFIG_MAX_FRAME_LATENCY
 
 /// On laptops with integrated and discrete GPU, prefer selection of the
-/// discrete GPU. Applies to nVidia and AMD on Windows only.
+/// discrete GPU. Applies to NVIDIA and AMD on Windows only.
 /// Default is 1 on Windows, 0 elsewhere.
 #ifndef BGFX_CONFIG_PREFER_DISCRETE_GPU
 #	define BGFX_CONFIG_PREFER_DISCRETE_GPU BX_PLATFORM_WINDOWS
@@ -644,5 +645,12 @@ static_assert(BGFX_CONFIG_MAX_VERTEX_STREAMS < 32, "Must be less than 32!");
 		| BGFX_CONFIG_RENDERER_WEBGPU      \
 		)
 #endif // BGFX_CONFIG_MIP_GEN_FALLBACK
+
+#ifndef BGFX_CONFIG_BLIT_FALLBACK
+#	define BGFX_CONFIG_BLIT_FALLBACK (0 \
+		| BGFX_CONFIG_RENDERER_DIRECT3D11 \
+		| BGFX_CONFIG_RENDERER_DIRECT3D12 \
+		)
+#endif // BGFX_CONFIG_BLIT_FALLBACK
 
 #endif // BGFX_CONFIG_H_HEADER_GUARD

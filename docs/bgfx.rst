@@ -30,9 +30,6 @@ Initialization and Shutdown
 .. doxygendefine:: BGFX_PCI_ID_MICROSOFT
 .. doxygendefine:: BGFX_PCI_ID_ARM
 
-.. doxygenstruct:: bgfx::Resolution
-    :members:
-
 .. doxygenstruct:: bgfx::Init
     :members:
 
@@ -62,6 +59,25 @@ Reset flags control back-buffer resolution, MSAA, vsync, and other global render
 .. doxygendefine:: BGFX_RESET_TRANSPARENT_BACKBUFFER
 
 .. doxygenfunction:: bgfx::reset
+
+Swap Chain
+**********
+
+Swap chain flags control properties of a single presentation surface. They are numerically
+identical to their ``BGFX_RESET_*`` counterparts, so main's flags round-trip losslessly.
+
+.. doxygendefine:: BGFX_SWAP_CHAIN_NONE
+.. doxygendefine:: BGFX_SWAP_CHAIN_FULLSCREEN
+.. doxygendefine:: BGFX_SWAP_CHAIN_SRGB_BACKBUFFER
+.. doxygendefine:: BGFX_SWAP_CHAIN_HDR10
+.. doxygendefine:: BGFX_SWAP_CHAIN_HIDPI
+.. doxygendefine:: BGFX_SWAP_CHAIN_TRANSPARENT_BACKBUFFER
+
+.. doxygenstruct:: bgfx::SwapChain
+    :members:
+
+.. doxygenfunction:: bgfx::createFrameBuffer(const SwapChain& _desc)
+.. doxygenfunction:: bgfx::updateSwapChain
 
 Frame
 *****
@@ -131,42 +147,28 @@ Available Caps
 
 Individual capability flags.
 
-.. doxygendefine:: BGFX_CAPS_ALPHA_TO_COVERAGE
 .. doxygendefine:: BGFX_CAPS_BLEND_INDEPENDENT
 .. doxygendefine:: BGFX_CAPS_COMPUTE
 .. doxygendefine:: BGFX_CAPS_CONSERVATIVE_RASTER
 .. doxygendefine:: BGFX_CAPS_DRAW_INDIRECT
 .. doxygendefine:: BGFX_CAPS_DRAW_INDIRECT_COUNT
-.. doxygendefine:: BGFX_CAPS_FRAGMENT_DEPTH
 .. doxygendefine:: BGFX_CAPS_FRAGMENT_ORDERING
 .. doxygendefine:: BGFX_CAPS_GRAPHICS_DEBUGGER
 .. doxygendefine:: BGFX_CAPS_HDR10
-.. doxygendefine:: BGFX_CAPS_HIDPI
 .. doxygendefine:: BGFX_CAPS_IMAGE_RW
 .. doxygendefine:: BGFX_CAPS_INDEX32
-.. doxygendefine:: BGFX_CAPS_INSTANCING
-.. doxygendefine:: BGFX_CAPS_OCCLUSION_QUERY
 .. doxygendefine:: BGFX_CAPS_PRIMITIVE_ID
 .. doxygendefine:: BGFX_CAPS_RENDERER_MULTITHREADED
 .. doxygendefine:: BGFX_CAPS_SWAP_CHAIN
-.. doxygendefine:: BGFX_CAPS_TEXTURE_BLIT
-.. doxygendefine:: BGFX_CAPS_TEXTURE_COMPARE_LEQUAL
-.. doxygendefine:: BGFX_CAPS_TEXTURE_COMPARE_RESERVED
 .. doxygendefine:: BGFX_CAPS_TEXTURE_CUBE_ARRAY
 .. doxygendefine:: BGFX_CAPS_TEXTURE_DIRECT_ACCESS
 .. doxygendefine:: BGFX_CAPS_TEXTURE_EXTERNAL
 .. doxygendefine:: BGFX_CAPS_TEXTURE_EXTERNAL_SHARED
-.. doxygendefine:: BGFX_CAPS_TEXTURE_READ_BACK
-.. doxygendefine:: BGFX_CAPS_TEXTURE_2D_ARRAY
-.. doxygendefine:: BGFX_CAPS_TEXTURE_3D
 .. doxygendefine:: BGFX_CAPS_TRANSPARENT_BACKBUFFER
 .. doxygendefine:: BGFX_CAPS_VARIABLE_RATE_SHADING
-.. doxygendefine:: BGFX_CAPS_VERTEX_ATTRIB_HALF
 .. doxygendefine:: BGFX_CAPS_VERTEX_ATTRIB_UINT10
-.. doxygendefine:: BGFX_CAPS_VERTEX_ID
 .. doxygendefine:: BGFX_CAPS_VIDEO_DECODE
 .. doxygendefine:: BGFX_CAPS_VIEWPORT_LAYER_ARRAY
-.. doxygendefine:: BGFX_CAPS_TEXTURE_COMPARE_ALL
 
 Statistics
 **********
@@ -200,10 +202,7 @@ It is only necessary to use these APIs in conjunction with creating windows.
     :members:
 
 .. doxygenfunction:: bgfx::renderFrame
-.. doxygenfunction:: bgfx::setPlatformData
 .. doxygenfunction:: bgfx::getInternalData
-.. doxygenfunction:: bgfx::overrideInternal(TextureHandle _handle, uintptr_t _ptr, uint16_t _layerIndex = 0)
-.. doxygenfunction:: bgfx::overrideInternal(TextureHandle _handle, uint16_t _width, uint16_t _height, uint8_t _numMips, TextureFormat::Enum _format, uint64_t _flags = BGFX_TEXTURE_NONE | BGFX_SAMPLER_NONE)
 
 Miscellaneous
 ~~~~~~~~~~~~~
@@ -656,7 +655,6 @@ Frame Buffers
 .. doxygenfunction:: bgfx::createFrameBuffer(BackbufferRatio::Enum _ratio, TextureFormat::Enum _format, uint64_t _textureFlags = BGFX_SAMPLER_U_CLAMP|BGFX_SAMPLER_V_CLAMP)
 .. doxygenfunction:: bgfx::createFrameBuffer(uint8_t _num, const TextureHandle* _handles, bool _destroyTexture)
 .. doxygenfunction:: bgfx::createFrameBuffer(uint8_t _num, const Attachment* _attachment, bool _destroyTexture)
-.. doxygenfunction:: bgfx::createFrameBuffer(void* _nwh, uint16_t _width, uint16_t _height, TextureFormat::Enum _format = TextureFormat::Count, TextureFormat::Enum _depthFormat = TextureFormat::Count)
 .. doxygenfunction:: bgfx::setName(FrameBufferHandle _handle, const char* _name, int32_t _len = INT32_MAX)
 .. doxygenfunction:: bgfx::getTexture
 .. doxygenfunction:: bgfx::destroy(FrameBufferHandle _handle)

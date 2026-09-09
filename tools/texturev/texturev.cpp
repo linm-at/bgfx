@@ -111,6 +111,7 @@ struct Binding
 		View,
 		Help,
 		About,
+		Delete,
 		Video,
 
 		Count
@@ -168,6 +169,7 @@ static const InputBinding s_bindingApp[] =
 	{ entry::Key::Return,    entry::Modifier::None,       1, NULL, "view files"          },
 	{ entry::Key::KeyH,      entry::Modifier::None,       1, NULL, "view help"           },
 	{ entry::Key::KeyI,      entry::Modifier::None,       1, NULL, "view info"           },
+	{ entry::Key::Delete,    entry::Modifier::None,       1, NULL, "view delete"         },
 
 	{ entry::Key::Key1,      entry::Modifier::None,       1, NULL, "view zoom 1.0\n"
 	                                                               "view fit\n"          },
@@ -219,31 +221,34 @@ static const InputBinding s_bindingView[] =
 
 static const InputBinding s_bindingHelp[] =
 {
-	{ entry::Key::Esc,  entry::Modifier::None,  1, NULL, "view help" },
-	{ entry::Key::KeyH, entry::Modifier::None,  1, NULL, "view help" },
+	{ entry::Key::Esc,  entry::Modifier::None, 1, NULL, "view help" },
+	{ entry::Key::KeyH, entry::Modifier::None, 1, NULL, "view help" },
 	INPUT_BINDING_END
 };
 
 static const InputBinding s_bindingAbout[] =
 {
-	{ entry::Key::Esc,  entry::Modifier::None,  1, NULL, "view about" },
+	{ entry::Key::Esc,  entry::Modifier::None, 1, NULL, "view about" },
 	INPUT_BINDING_END
 };
 
-// Bindings active while a video clip is loaded. Replaces the standard View
-// bindings on file change so per-image keys (rgb channel toggle, geometry,
-// layer / mip navigation) don't accidentally fire on the video texture.
-// Per-file navigation, exit, zoom and help are kept.
+static const InputBinding s_bindingDelete[] =
+{
+	{ entry::Key::KeyD, entry::Modifier::None, 1, NULL, "view delete file"   },
+	{ entry::Key::KeyT, entry::Modifier::None, 1, NULL, "view delete trash"  },
+	{ entry::Key::Esc,  entry::Modifier::None, 1, NULL, "view delete cancel" },
+	INPUT_BINDING_END
+};
+
 static const InputBinding s_bindingVideo[] =
 {
-	{ entry::Key::Esc,          entry::Modifier::None,       1, NULL, "exit"                    },
-
-	{ entry::Key::Left,         entry::Modifier::None,       1, NULL, "video skip -8"           },
-	{ entry::Key::Right,        entry::Modifier::None,       1, NULL, "video skip +8"           },
-	{ entry::Key::Space,        entry::Modifier::None,       1, NULL, "video pause"             },
-	{ entry::Key::LeftBracket,  entry::Modifier::None,       1, NULL, "video rate down"         },
-	{ entry::Key::RightBracket, entry::Modifier::None,       1, NULL, "video rate up"           },
-	{ entry::Key::KeyL,         entry::Modifier::None,       1, NULL, "video marker"            },
+	{ entry::Key::Esc,          entry::Modifier::None, 1, NULL, "exit"            },
+	{ entry::Key::Left,         entry::Modifier::None, 1, NULL, "video skip -8"   },
+	{ entry::Key::Right,        entry::Modifier::None, 1, NULL, "video skip +8"   },
+	{ entry::Key::Space,        entry::Modifier::None, 1, NULL, "video pause"     },
+	{ entry::Key::LeftBracket,  entry::Modifier::None, 1, NULL, "video rate down" },
+	{ entry::Key::RightBracket, entry::Modifier::None, 1, NULL, "video rate up"   },
+	{ entry::Key::KeyL,         entry::Modifier::None, 1, NULL, "video marker"    },
 
 	INPUT_BINDING_END
 };
@@ -254,6 +259,7 @@ static const char* s_bindingName[] =
 	"View",
 	"Help",
 	"About",
+	"Delete",
 	"Video",
 };
 static_assert(Binding::Count == BX_COUNTOF(s_bindingName) );
@@ -264,6 +270,7 @@ static const InputBinding* s_binding[] =
 	s_bindingView,
 	s_bindingHelp,
 	s_bindingAbout,
+	s_bindingDelete,
 	s_bindingVideo,
 };
 static_assert(Binding::Count == BX_COUNTOF(s_binding) );
@@ -301,11 +308,24 @@ struct RendererTypeRemap
 
 struct View
 {
+	struct Action
+	{
+		enum Enum
+		{
+			None,
+			Delete,
+			Trash,
+		};
+	};
+
 	View()
 		: m_rendererType(bgfx::RendererType::Count)
 		, m_cubeMapGeo(Geometry::Quad)
 		, m_outputFormat(Output::sRGB)
+		, m_action(Action::None)
 		, m_fileIndex(0)
+		, m_fileRows(1)
+		, m_fileScroll(0)
 		, m_scaleFn(0)
 		, m_mip(0)
 		, m_layer(0)
@@ -329,6 +349,7 @@ struct View
 		, m_alpha(false)
 		, m_help(false)
 		, m_about(false)
+		, m_delete(false)
 		, m_info(false)
 		, m_files(false)
 		, m_sdf(false)
@@ -622,13 +643,27 @@ struct View
 			}
 			else if (0 == bx::strCmp(_argv[1], "file-up") )
 			{
-				m_fileIndex = bx::satSub<uint32_t>(m_fileIndex, 1u);
+				m_fileIndex  = bx::satSub<uint32_t>(m_fileIndex, 1u);
+				m_fileScroll = -1;
 			}
 			else if (0 == bx::strCmp(_argv[1], "file-down") )
 			{
 				uint32_t numFiles = bx::satSub<uint32_t>(uint32_t(m_fileList.size()), 1u);
 				++m_fileIndex;
-				m_fileIndex = bx::min(m_fileIndex, numFiles);
+				m_fileIndex  = bx::min(m_fileIndex, numFiles);
+				m_fileScroll = 1;
+			}
+			else if (0 == bx::strCmp(_argv[1], "file-pgup") )
+			{
+				m_fileIndex  = bx::satSub<uint32_t>(m_fileIndex, m_fileRows);
+				m_fileScroll = -1;
+			}
+			else if (0 == bx::strCmp(_argv[1], "file-pgdown") )
+			{
+				uint32_t numFiles = bx::satSub<uint32_t>(uint32_t(m_fileList.size()), 1u);
+				m_fileIndex += m_fileRows;
+				m_fileIndex  = bx::min(m_fileIndex, numFiles);
+				m_fileScroll = 1;
 			}
 			else if (0 == bx::strCmp(_argv[1], "rgb") )
 			{
@@ -717,10 +752,16 @@ struct View
 					else if (Output::HDR10 == m_outputFormat)
 					{
 						format = bgfx::TextureFormat::RGB10A2;
-						formatFlag = BGFX_RESET_HDR10;
+						formatFlag = BGFX_SWAP_CHAIN_HDR10;
 					}
 
-					bgfx::reset(m_width, m_height, BGFX_RESET_VSYNC | formatFlag, format);
+					bgfx::SwapChain swapChain;
+					swapChain.width       = m_width;
+					swapChain.height      = m_height;
+					swapChain.flags       = formatFlag;
+					swapChain.formatColor = format;
+
+					bgfx::reset(BGFX_RESET_VSYNC, &swapChain);
 				}
 			}
 			else if (0 == bx::strCmp(_argv[1], "help") )
@@ -730,6 +771,30 @@ struct View
 			else if (0 == bx::strCmp(_argv[1], "about") )
 			{
 				m_about ^= true;
+			}
+			else if (0 == bx::strCmp(_argv[1], "delete") )
+			{
+				if (_argc >= 3)
+				{
+					if (0 == bx::strCmp(_argv[2], "file") )
+					{
+						m_action = Action::Delete;
+					}
+					else if (0 == bx::strCmp(_argv[2], "trash") )
+					{
+						m_action = Action::Trash;
+					}
+
+					m_delete = false;
+				}
+				else if (!m_delete)
+				{
+					m_delete = !m_fileList.empty();
+				}
+				else
+				{
+					m_delete = false;
+				}
 			}
 			else if (0 == bx::strCmp(_argv[1], "save") )
 			{
@@ -742,6 +807,7 @@ struct View
 			else if (0 == bx::strCmp(_argv[1], "files") )
 			{
 				m_files ^= true;
+				m_fileScroll = -1;
 			}
 		}
 
@@ -898,7 +964,10 @@ struct View
 	bgfx::TextureInfo m_textureInfo;
 	Geometry::Enum m_cubeMapGeo;
 	Output::Enum m_outputFormat;
+	Action::Enum m_action;
 	uint32_t m_fileIndex;
+	uint32_t m_fileRows;
+	int32_t  m_fileScroll;
 	uint32_t m_scaleFn;
 	uint32_t m_mip;
 	uint32_t m_layer;
@@ -923,6 +992,7 @@ struct View
 	bool     m_alpha;
 	bool     m_help;
 	bool     m_about;
+	bool     m_delete;
 	bool     m_info;
 	bool     m_files;
 	bool     m_sdf;
@@ -1466,11 +1536,11 @@ int _main_(int _argc, char** _argv)
 		: view.m_rendererType
 		;
 	init.vendorId          = args.m_pciId;
-	init.platformData.nwh  = entry::getNativeWindowHandle(entry::kDefaultWindowHandle);
-	init.platformData.ndt  = entry::getNativeDisplayHandle();
-	init.resolution.width  = view.m_width;
-	init.resolution.height = view.m_height;
-	init.resolution.reset  = BGFX_RESET_VSYNC;
+	init.swapChain.nwh     = entry::getNativeWindowHandle(entry::kDefaultWindowHandle);
+	init.swapChain.ndt     = entry::getNativeDisplayHandle();
+	init.swapChain.width  = view.m_width;
+	init.swapChain.height = view.m_height;
+	init.reset  = BGFX_RESET_VSYNC;
 	init.videoDecode       = true;
 
 	bgfx::init(init);
@@ -1484,6 +1554,8 @@ int _main_(int _argc, char** _argv)
 		);
 
 	imguiCreate();
+
+	ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
 
 	PosUvwColorVertex::init();
 
@@ -1617,7 +1689,7 @@ int _main_(int _argc, char** _argv)
 
 		entry::WindowState windowState;
 		entry::MouseState mouseStatePrev;
-		while (!entry::processWindowEvents(windowState, debug, init.resolution.reset) )
+		while (!entry::processWindowEvents(windowState, debug, init.reset) )
 		{
 			const entry::MouseState& mouseState = windowState.m_mouse;
 			view.m_width  = windowState.m_width;
@@ -1639,7 +1711,7 @@ int _main_(int _argc, char** _argv)
 				,  uint16_t(view.m_height)
 				);
 
-			bool modalWindow = view.m_help || view.m_about;
+			bool modalWindow = view.m_help || view.m_about || view.m_delete;
 			bool overArea = false
 				|| ImGui::GetMousePos().y <= ImGui::GetTextLineHeightWithSpacing()
 				|| ImGui::MouseOverArea()
@@ -1930,7 +2002,10 @@ int _main_(int _argc, char** _argv)
 
 			static bool help = false;
 			static bool about = false;
+			static bool deleteFile = false;
+			static bool deleteOpened = false;
 			static bool mouseDelta = false;
+
 			if (!mouseDelta)
 			{
 				mouseStatePrev = mouseState;
@@ -2006,6 +2081,26 @@ int _main_(int _argc, char** _argv)
 				}
 
 				about = view.m_about;
+			}
+
+			if (deleteFile != view.m_delete)
+			{
+				if (!deleteFile)
+				{
+					ImGui::OpenPopup("Delete");
+					deleteOpened = true;
+					inputRemoveBindings(s_bindingName[Binding::App]);
+					inputRemoveBindings(s_bindingName[playbackBinding]);
+					inputAddBindings(s_bindingName[Binding::Delete], s_binding[Binding::Delete]);
+				}
+				else
+				{
+					inputRemoveBindings(s_bindingName[Binding::Delete]);
+					inputAddBindings(s_bindingName[Binding::App], s_binding[Binding::App]);
+					inputAddBindings(s_bindingName[playbackBinding], s_binding[playbackBinding]);
+				}
+
+				deleteFile = view.m_delete;
 			}
 
 			if (view.m_info)
@@ -2093,41 +2188,53 @@ int _main_(int _argc, char** _argv)
 						if (ImGui::BeginListBox("##empty", ImVec2(0.0f, listHeight) ) )
 						{
 							const int32_t itemCount = int32_t(view.m_fileList.size() );
+							const int32_t index     = int32_t(view.m_fileIndex);
+							const int32_t scroll    = view.m_fileScroll;
+
+							view.m_fileRows = bx::max<uint32_t>(1
+								, uint32_t(ImGui::GetWindowHeight()/itemHeight)
+								);
+							view.m_fileScroll = 0;
 
 							ImGuiListClipper clipper;
 							clipper.Begin(itemCount, itemHeight);
 
-							const  int32_t index = int32_t(view.m_fileIndex);
-							static int32_t oldIndex  = index;
-							const  int32_t direction = bx::clamp(index - oldIndex, -1, 1);
-							oldIndex = index;
-
-							bool currentVisible = false;
+							if (0 != scroll
+							&&  index < itemCount)
+							{
+								clipper.IncludeItemByIndex(index);
+							}
 
 							while (clipper.Step() )
 							{
-								currentVisible |= index > clipper.DisplayStart && index < clipper.DisplayEnd;
-
 								for (int32_t pos = clipper.DisplayStart; pos < clipper.DisplayEnd; ++pos)
 								{
 									ImGui::PushID(pos);
 
-									bool isSelected = pos == index;
+									const bool isSelected = pos == index;
 
-									if (ImGui::Selectable(view.m_fileList[pos].c_str(), &isSelected) )
+									if (ImGui::Selectable(view.m_fileList[pos].c_str(), isSelected) )
 									{
 										view.m_fileIndex = pos;
 									}
 
+									if (isSelected
+									&&  0 != scroll)
+									{
+										const float itemTop = ImGui::GetItemRectMin().y;
+										const float itemBot = ImGui::GetItemRectMax().y;
+										const float viewTop = ImGui::GetWindowPos().y;
+										const float viewBot = viewTop + ImGui::GetWindowHeight();
+
+										if (itemTop < viewTop
+										||  itemBot > viewBot)
+										{
+											ImGui::SetScrollHereY(0 < scroll ? 1.0f : 0.0f);
+										}
+									}
+
 									ImGui::PopID();
 								}
-							}
-
-							if (0 != direction && !currentVisible)
-							{
-								const int32_t num  = int32_t(listHeight / itemHeight);
-								const int32_t posY = index + (1 == direction ? 1-num : 0);
-								ImGui::SetScrollY(posY*itemHeight);
 							}
 
 							clipper.End();
@@ -2199,6 +2306,9 @@ int _main_(int _argc, char** _argv)
 				keyBindingHelp("down", "Next texture.");
 				ImGui::NextLine();
 
+				keyBindingHelp("delete", "Delete current file (or move it to trash).");
+				ImGui::NextLine();
+
 				keyBindingHelp("r/g/b", "Toggle R, G, or B color channel.");
 				keyBindingHelp("a",     "Toggle alpha blending.");
 				ImGui::NextLine();
@@ -2220,7 +2330,120 @@ int _main_(int _argc, char** _argv)
 				ImGui::EndPopup();
 			}
 
+			if (ImGui::BeginPopupModal("Delete", &view.m_delete, ImGuiWindowFlags_AlwaysAutoResize) )
+			{
+				ImGui::Text("Delete file:\n\n");
+
+				ImGui::PushFont(ImGui::Font::Mono);
+				ImGui::Text("%s", view.m_fileList.empty() ? "" : view.m_fileList[view.m_fileIndex].c_str() );
+				ImGui::NextLine();
+
+				keyBindingHelp("d",     "Delete file.");
+				keyBindingHelp("t",     "Move file to trash.");
+				keyBindingHelp("[any]", "Cancel.");
+				ImGui::PopFont();
+
+				ImGui::Dummy(ImVec2(0.0f, 0.0f) );
+
+				bool cancel = false;
+
+				if (ImGui::Button("Delete", ImVec2(96.0f, 0.0f) ) )
+				{
+					view.m_action = View::Action::Delete;
+				}
+
+				ImGui::SameLine();
+				if (ImGui::Button("Trash", ImVec2(96.0f, 0.0f) ) )
+				{
+					view.m_action = View::Action::Trash;
+				}
+
+				ImGui::SameLine();
+				cancel |= ImGui::Button("Cancel", ImVec2(96.0f, 0.0f) );
+
+				// Any key other than the ones bound above cancels. Skip the frame
+				// popup is opened, otherwise key that opened it would cancel it.
+				if (!deleteOpened)
+				{
+					for (int32_t key = ImGuiKey_Tab; key <= ImGuiKey_Oem102 && !cancel; ++key)
+					{
+						if (key >= ImGuiKey_LeftCtrl
+						&&  key <= ImGuiKey_RightSuper)
+						{
+							continue;
+						}
+
+						cancel = ImGui::IsKeyPressed(ImGuiKey(key), false);
+					}
+				}
+
+				deleteOpened = false;
+
+				if (cancel
+				||  View::Action::None != view.m_action
+				||  view.m_fileList.empty()
+				||  !view.m_delete)
+				{
+					view.m_delete = false;
+					ImGui::CloseCurrentPopup();
+				}
+
+				ImGui::EndPopup();
+			}
+
 			imguiEndFrame();
+
+			if (View::Action::None != view.m_action)
+			{
+				const View::Action::Enum action = view.m_action;
+				view.m_action = View::Action::None;
+
+				if (!view.m_fileList.empty() )
+				{
+					bx::FilePath fp = view.m_path;
+					fp.join(view.m_fileList[view.m_fileIndex].c_str() );
+
+					if (videoOwnsTexture)
+					{
+						videoPlayer.close();
+						videoOwnsTexture = false;
+						texture = BGFX_INVALID_HANDLE;
+					}
+					else if (bgfx::isValid(texture) )
+					{
+						bgfx::destroy(texture);
+						texture = BGFX_INVALID_HANDLE;
+					}
+
+					bx::Error err;
+					const bool result = View::Action::Trash == action
+						? bx::moveToTrash(fp, &err)
+						: bx::remove(fp, &err)
+						;
+
+					if (result)
+					{
+						view.m_fileList.erase(view.m_fileList.begin() + view.m_fileIndex);
+
+						if (view.m_fileIndex >= view.m_fileList.size() )
+						{
+							view.m_fileIndex = bx::satSub<uint32_t>(uint32_t(view.m_fileList.size() ), 1u);
+						}
+					}
+					else
+					{
+						const bx::StringView& msg = err.getMessage();
+						bx::printf("Failed to delete %s: %S\n", fp.getCPtr(), &msg);
+					}
+
+					fileIndex = UINT32_MAX;
+
+					if (view.m_fileList.empty() )
+					{
+						entry::setWindowTitle(entry::kDefaultWindowHandle, "texturev");
+					}
+				}
+			}
 
 			if (view.m_fileIndex != fileIndex
 			&&  0 != view.m_fileList.size() )
@@ -2256,7 +2479,7 @@ int _main_(int _argc, char** _argv)
 				}
 
 				const int desiredBinding = nextIsVideo ? Binding::Video : Binding::View;
-				const bool modalOpen = view.m_help || view.m_about;
+				const bool modalOpen = view.m_help || view.m_about || view.m_delete;
 				if (desiredBinding != playbackBinding && !modalOpen)
 				{
 					inputRemoveBindings(s_bindingName[playbackBinding]);

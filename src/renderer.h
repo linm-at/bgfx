@@ -105,16 +105,13 @@ namespace bgfx
 
 			m_view = m_viewTmp;
 
-			for (uint32_t ii = 0; ii < BGFX_CONFIG_MAX_VIEWS; ++ii)
+			for (uint32_t ii = 0, num = _frame->m_numUsedViews; ii < num; ++ii)
 			{
-				bx::memCopy(&m_view[ii].un.f4x4, &_frame->m_view[ii].m_view.un.f4x4, sizeof(Matrix4) );
-			}
-
-			for (uint32_t ii = 0; ii < BGFX_CONFIG_MAX_VIEWS; ++ii)
-			{
-				bx::float4x4_mul(&m_viewProj[ii].un.f4x4
-					, &m_view[ii].un.f4x4
-					, &_frame->m_view[ii].m_proj.un.f4x4
+				const uint16_t view = _frame->m_usedViews[ii];
+				bx::memCopy(&m_view[view].un.f4x4, &_frame->m_view[view].m_view.un.f4x4, sizeof(Matrix4) );
+				bx::float4x4_mul(&m_viewProj[view].un.f4x4
+					, &m_view[view].un.f4x4
+					, &_frame->m_view[view].m_proj.un.f4x4
 					);
 			}
 		}
@@ -246,7 +243,7 @@ namespace bgfx
 
 				case PredefinedUniform::Model:
 					{
-						const Matrix4& model = frameCache.m_matrixCache.m_cache[_draw.m_startMatrix];
+						const Matrix4& model = frameCache.m_matrixCache.at(_draw.m_startMatrix);
 						_renderer->setShaderUniform4x4f(flags
 							, predefined.m_loc
 							, model.un.val
@@ -258,7 +255,7 @@ namespace bgfx
 				case PredefinedUniform::ModelView:
 					{
 						Matrix4 modelView;
-						const Matrix4& model = frameCache.m_matrixCache.m_cache[_draw.m_startMatrix];
+						const Matrix4& model = frameCache.m_matrixCache.at(_draw.m_startMatrix);
 						bx::model4x4_mul(&modelView.un.f4x4
 							, &model.un.f4x4
 							, &m_view[_view].un.f4x4
@@ -275,7 +272,7 @@ namespace bgfx
 					{
 						Matrix4 modelView;
 						Matrix4 invModelView;
-						const Matrix4& model = frameCache.m_matrixCache.m_cache[_draw.m_startMatrix];
+						const Matrix4& model = frameCache.m_matrixCache.at(_draw.m_startMatrix);
 						bx::model4x4_mul(&modelView.un.f4x4
 							, &model.un.f4x4
 							, &m_view[_view].un.f4x4
@@ -294,7 +291,7 @@ namespace bgfx
 				case PredefinedUniform::ModelViewProj:
 					{
 						Matrix4 modelViewProj;
-						const Matrix4& model = frameCache.m_matrixCache.m_cache[_draw.m_startMatrix];
+						const Matrix4& model = frameCache.m_matrixCache.at(_draw.m_startMatrix);
 						bx::model4x4_mul_viewproj4x4(&modelViewProj.un.f4x4
 							, &model.un.f4x4
 							, &m_viewProj[_view].un.f4x4
@@ -649,9 +646,11 @@ namespace bgfx
 			ChunkTy sbc;
 			static_cast<Derived*>(this)->createChunk(sbc);
 
-			const uint32_t lastChunk = bx::max(uint32_t(m_chunks.size()-1), 1);
-			const uint32_t at = UINT32_MAX == _at ? lastChunk : _at;
-			const uint32_t chunkIndex = at % bx::max(m_chunks.size(), 1);
+			const uint32_t numChunks  = uint32_t(m_chunks.size() );
+			const uint32_t chunkIndex = UINT32_MAX == _at
+				? numChunks
+				: bx::min(_at, numChunks)
+				;
 
 			m_chunkControl.resize(m_chunkSize);
 

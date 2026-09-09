@@ -158,7 +158,7 @@ typedef enum bgfx_attrib_type
     BGFX_ATTRIB_TYPE_UINT10,                  /** ( 2) Uint10, availability depends on: `BGFX_CAPS_VERTEX_ATTRIB_UINT10`. */
     BGFX_ATTRIB_TYPE_INT16,                   /** ( 3) Int16                          */
     BGFX_ATTRIB_TYPE_UINT16,                  /** ( 4) Uint16                         */
-    BGFX_ATTRIB_TYPE_HALF,                    /** ( 5) Half, availability depends on: `BGFX_CAPS_VERTEX_ATTRIB_HALF`. */
+    BGFX_ATTRIB_TYPE_HALF,                    /** ( 5) Half.                          */
     BGFX_ATTRIB_TYPE_FLOAT,                   /** ( 6) Float                          */
     BGFX_ATTRIB_TYPE_INT32,                   /** ( 7) Int32                          */
     BGFX_ATTRIB_TYPE_UINT32,                  /** ( 8) Uint32                         */
@@ -330,15 +330,21 @@ typedef enum bgfx_uniform_freq
 /**
  * Backbuffer ratio enum.
  *
+ * The ratio is always relative to the window bgfx was initialized with, and is
+ * re-resolved by `bgfx::reset`. It is not relative to whichever window a texture
+ * happens to be rendered to, so on a second window a ratio texture is not
+ * meaningfully sized. For that reason a ratio texture cannot be used as
+ * `SwapChain::depth`.
+ *
  */
 typedef enum bgfx_backbuffer_ratio
 {
-    BGFX_BACKBUFFER_RATIO_EQUAL,              /** ( 0) Equal to backbuffer.           */
-    BGFX_BACKBUFFER_RATIO_HALF,               /** ( 1) One half size of backbuffer.   */
-    BGFX_BACKBUFFER_RATIO_QUARTER,            /** ( 2) One quarter size of backbuffer. */
-    BGFX_BACKBUFFER_RATIO_EIGHTH,             /** ( 3) One eighth size of backbuffer. */
-    BGFX_BACKBUFFER_RATIO_SIXTEENTH,          /** ( 4) One sixteenth size of backbuffer. */
-    BGFX_BACKBUFFER_RATIO_DOUBLE,             /** ( 5) Double size of backbuffer.     */
+    BGFX_BACKBUFFER_RATIO_EQUAL,              /** ( 0) Equal to the main window's backbuffer. */
+    BGFX_BACKBUFFER_RATIO_HALF,               /** ( 1) One half size of the main window's backbuffer. */
+    BGFX_BACKBUFFER_RATIO_QUARTER,            /** ( 2) One quarter size of the main window's backbuffer. */
+    BGFX_BACKBUFFER_RATIO_EIGHTH,             /** ( 3) One eighth size of the main window's backbuffer. */
+    BGFX_BACKBUFFER_RATIO_SIXTEENTH,          /** ( 4) One sixteenth size of the main window's backbuffer. */
+    BGFX_BACKBUFFER_RATIO_DOUBLE,             /** ( 5) Double size of the main window's backbuffer. */
 
     BGFX_BACKBUFFER_RATIO_COUNT
 
@@ -777,7 +783,23 @@ typedef struct bgfx_internal_data_s
  */
 typedef struct bgfx_platform_data_s
 {
-    void*                ndt;                /** Native display type (*nix specific).     */
+    
+    /**
+     * GL context, D3D device, or Vulkan device. If `NULL`, bgfx
+     * will create context/device.
+     */
+    void*                context;
+    void*                queue;              /** D3D12 Queue. If `NULL` bgfx will create queue. */
+    bgfx_native_window_handle_type_t type;   /** Handle type. Needed for platforms having more than one option. */
+
+} bgfx_platform_data_t;
+
+/**
+ * Swap chain description.
+ *
+ */
+typedef struct bgfx_swap_chain_s
+{
     
     /**
      * Native window handle. If `NULL`, bgfx will create a headless
@@ -786,43 +808,32 @@ typedef struct bgfx_platform_data_s
     void*                nwh;
     
     /**
-     * GL context, D3D device, or Vulkan device. If `NULL`, bgfx
-     * will create context/device.
+     * Native display type (*nix specific). A window that leaves this
+     * `NULL` uses the one the main window was initialized with.
      */
-    void*                context;
-    void*                queue;              /** D3D12 Queue. If `NULL` bgfx will create queue. */
+    void*                ndt;
+    uint32_t             width;              /** Swap chain width.                        */
+    uint32_t             height;             /** Swap chain height.                       */
+    uint32_t             flags;              /** See: `BGFX_SWAP_CHAIN_*`.                */
+    bgfx_texture_format_t formatColor;       /** Color format.                            */
     
     /**
-     * GL back-buffer, or D3D render target view. If `NULL` bgfx will
-     * create back-buffer color surface.
+     * Depth/stencil format, or `TextureFormat::Count` for no depth. Ignored
+     * when `depth` is valid.
      */
-    void*                backBuffer;
+    bgfx_texture_format_t formatDepthStencil;
     
     /**
-     * Backbuffer depth/stencil. If `NULL`, bgfx will create a back-buffer
-     * depth/stencil surface.
+     * Depth attachment. Must be created with `BGFX_TEXTURE_RT`, and match the
+     * swap chain width, height and sample count. When invalid, bgfx creates and
+     * owns a depth surface per `formatDepthStencil`. A texture supplied here is
+     * never destroyed by bgfx, and may be shared by several same-size swap chains.
      */
-    void*                backBufferDS;
-    bgfx_native_window_handle_type_t type;   /** Handle type. Needed for platforms having more than one option. */
-
-} bgfx_platform_data_t;
-
-/**
- * Backbuffer resolution and reset parameters.
- *
- */
-typedef struct bgfx_resolution_s
-{
-    bgfx_texture_format_t formatColor;       /** Backbuffer color format.                 */
-    bgfx_texture_format_t formatDepthStencil; /** Backbuffer depth/stencil format.         */
-    uint32_t             width;              /** Backbuffer width.                        */
-    uint32_t             height;             /** Backbuffer height.                       */
-    uint32_t             reset;              /** Reset parameters.                        */
+    bgfx_texture_handle_t depth;
     uint8_t              numBackBuffers;     /** Number of back buffers.                  */
     uint8_t              maxFrameLatency;    /** Maximum frame latency.                   */
-    uint8_t              debugTextScale;     /** Scale factor for debug text.             */
 
-} bgfx_resolution_t;
+} bgfx_swap_chain_t;
 
 /**
  * Configurable runtime limits parameters.
@@ -847,10 +858,12 @@ typedef struct bgfx_init_limits_s
     
     /**
      * Number of frames the draw-call peak (high-water mark) is observed
-     * before unused storage is released. Set to 0 to keep whatever has
-     * been allocated for the lifetime of the context. With
-     * `BGFX_CONFIG_DYNAMIC_FRAME_STORAGE` disabled nothing per frame is
-     * resized at all, and this only releases unused uniform buffer space.
+     * before unused storage is released. Also used for resource command
+     * buffers and uniform buffers. Set to 0 to keep whatever has been
+     * allocated for the lifetime of the context. With
+     * `BGFX_CONFIG_DYNAMIC_FRAME_STORAGE` disabled draw/blit/rect storage
+     * is not resized; unused uniform and resource command buffer space
+     * is still released.
      */
     uint32_t             numDrawCallPeakFrames;
     uint32_t             minResourceCbSize;  /** Minimum resource command buffer size.    */
@@ -898,7 +911,19 @@ typedef struct bgfx_init_s
     bool                 fallback;           /** Enable fallback to next available renderer. */
     bool                 videoDecode;        /** Enable video decoding.                   */
     bgfx_platform_data_t platformData;       /** Platform data.                           */
-    bgfx_resolution_t    resolution;         /** Backbuffer resolution and reset parameters. See: `bgfx::Resolution`. */
+    
+    /**
+     * Swap chain for the window bgfx creates its device on.
+     * See: `bgfx::SwapChain`.
+     */
+    bgfx_swap_chain_t    swapChain;
+    
+    /**
+     * Device and frame global settings. Anything that is a
+     * property of one surface belongs in `swapChain` instead.
+     * See: `BGFX_RESET_*`.
+     */
+    uint32_t             reset;
     bgfx_init_limits_t   limits;             /** Configurable runtime limits parameters.  */
     
     /**
@@ -1564,12 +1589,8 @@ BGFX_C_API void bgfx_shutdown(void);
  * @attention This call doesn’t change the window size, it just resizes
  *   the back-buffer. Your windowing code controls the window size.
  *
- * @param[in] _width Back-buffer width.
- * @param[in] _height Back-buffer height.
  * @param[in] _flags See: `BGFX_RESET_*` for more info.
  *    - `BGFX_RESET_NONE` - No reset flags.
- *    - `BGFX_RESET_FULLSCREEN` - Not supported yet.
- *    - `BGFX_RESET_MSAA_X[2/4/8/16]` - Enable 2, 4, 8 or 16 x MSAA.
  *    - `BGFX_RESET_VSYNC` - Enable V-Sync.
  *    - `BGFX_RESET_MAXANISOTROPY` - Turn on/off max anisotropy.
  *    - `BGFX_RESET_CAPTURE` - Begin screen capture.
@@ -1577,11 +1598,19 @@ BGFX_C_API void bgfx_shutdown(void);
  *    - `BGFX_RESET_FLIP_AFTER_RENDER` - This flag  specifies where flip
  *      occurs. Default behaviour is that flip occurs before rendering new
  *      frame. This flag only has effect when `BGFX_CONFIG_MULTITHREADED=0`.
- *    - `BGFX_RESET_SRGB_BACKBUFFER` - Enable sRGB back-buffer.
- * @param[in] _format Texture format. See: `TextureFormat::Enum`.
+ *  Per-surface settings are not here. `BGFX_SWAP_CHAIN_*` flags belong
+ *  on `SwapChain::flags`, and are ignored if passed here.
+ * @param[in] _swapChain Main window swap chain. When `NULL` the main window is left
+ *  untouched and only the device and frame globals above are
+ *  applied, which is what an application driving its own swap
+ *  chains wants. Otherwise the main window takes on this
+ *  description: resize it, change its format, or change its
+ *  per-surface flags. Fields left neutral keep their current
+ *  value, and `nwh`/`ndt` are ignored -- main's are bgfx's own.
+ *  Must be `NULL` when `bgfx::init` created no main window.
  *
  */
-BGFX_C_API void bgfx_reset(uint32_t _width, uint32_t _height, uint32_t _flags, bgfx_texture_format_t _format);
+BGFX_C_API void bgfx_reset(uint32_t _flags, const bgfx_swap_chain_t* _swapChain);
 
 /**
  * Advance to next frame. This is the main frame-advancement call on the
@@ -1719,9 +1748,12 @@ BGFX_C_API const bgfx_memory_t* bgfx_make_ref_release(const void* _data, uint32_
  *    - `BGFX_DEBUG_TEXT` - Display debug text.
  *    - `BGFX_DEBUG_WIREFRAME` - Wireframe rendering. All rendering
  *      primitives will be rendered as lines.
+ * @param[in] _handle Frame buffer the debug text and statistics are drawn on.
+ *  Invalid handle selects the window bgfx was initialized with.
+ * @param[in] _scale Debug text scale factor. 0 is the same as 1.
  *
  */
-BGFX_C_API void bgfx_set_debug(uint32_t _debug);
+BGFX_C_API void bgfx_set_debug(uint32_t _debug, bgfx_frame_buffer_handle_t _handle, uint8_t _scale);
 
 /**
  * Clear internal debug text buffer.
@@ -2286,8 +2318,7 @@ BGFX_C_API bgfx_texture_handle_t bgfx_create_texture(const bgfx_memory_t* _mem, 
  * @param[in] _width Width.
  * @param[in] _height Height.
  * @param[in] _hasMips Indicates that texture contains full mip-map chain.
- * @param[in] _numLayers Number of layers in texture array. Must be 1 if caps
- *  `BGFX_CAPS_TEXTURE_2D_ARRAY` flag is not set.
+ * @param[in] _numLayers Number of layers in texture array.
  * @param[in] _format Texture format. See: `TextureFormat::Enum`.
  * @param[in] _flags Texture creation (see `BGFX_TEXTURE_*`.), and sampler (see `BGFX_SAMPLER_*`)
  *  flags. Default texture sampling mode is linear, and wrap mode is repeat.
@@ -2311,8 +2342,7 @@ BGFX_C_API bgfx_texture_handle_t bgfx_create_texture_2d(uint16_t _width, uint16_
  *
  * @param[in] _ratio Texture size in respect to back-buffer size. See: `BackbufferRatio::Enum`.
  * @param[in] _hasMips Indicates that texture contains full mip-map chain.
- * @param[in] _numLayers Number of layers in texture array. Must be 1 if caps
- *  `BGFX_CAPS_TEXTURE_2D_ARRAY` flag is not set.
+ * @param[in] _numLayers Number of layers in texture array.
  * @param[in] _format Texture format. See: `TextureFormat::Enum`.
  * @param[in] _flags Texture creation (see `BGFX_TEXTURE_*`.), and sampler (see `BGFX_SAMPLER_*`)
  *  flags. Default texture sampling mode is linear, and wrap mode is repeat.
@@ -2355,8 +2385,7 @@ BGFX_C_API bgfx_texture_handle_t bgfx_create_texture_3d(uint16_t _width, uint16_
  *
  * @param[in] _size Cube side size.
  * @param[in] _hasMips Indicates that texture contains full mip-map chain.
- * @param[in] _numLayers Number of layers in texture array. Must be 1 if caps
- *  `BGFX_CAPS_TEXTURE_2D_ARRAY` flag is not set.
+ * @param[in] _numLayers Number of layers in texture array.
  * @param[in] _format Texture format. See: `TextureFormat::Enum`.
  * @param[in] _flags Texture creation (see `BGFX_TEXTURE_*`.), and sampler (see `BGFX_SAMPLER_*`)
  *  flags. Default texture sampling mode is linear, and wrap mode is repeat.
@@ -2473,7 +2502,6 @@ BGFX_C_API void bgfx_clear_texture(bgfx_texture_handle_t _handle, uint8_t _mip, 
  * @attention Texture must be created with `BGFX_TEXTURE_READ_BACK` flag.
  *            It's a texture for CPU readback, and can't be a GPU resource
  *            at the same time. See `examples/30-picking`.
- * @attention Availability depends on: `BGFX_CAPS_TEXTURE_READ_BACK`.
  *
  * @param[in] _src Source texture region.
  * @param[in] _data Destination buffer.
@@ -2583,23 +2611,35 @@ BGFX_C_API bgfx_frame_buffer_handle_t bgfx_create_frame_buffer_from_handles(uint
 BGFX_C_API bgfx_frame_buffer_handle_t bgfx_create_frame_buffer_from_attachment(uint8_t _num, const bgfx_attachment_t* _attachment, bool _destroyTexture);
 
 /**
- * Create frame buffer for multiple window rendering.
+ * Create a frame buffer for a window, from a full swap chain description.
  *
  * @remarks
  *   Frame buffer cannot be used for sampling.
  *
  * @attention Availability depends on: `BGFX_CAPS_SWAP_CHAIN`.
  *
- * @param[in] _nwh OS' target native window handle.
- * @param[in] _width Window back buffer width.
- * @param[in] _height Window back buffer height.
- * @param[in] _format Window back buffer color format.
- * @param[in] _depthFormat Window back buffer depth format.
+ * @param[in] _desc Swap chain description. See: `bgfx::SwapChain`.
  *
  * @returns Frame buffer handle.
  *
  */
-BGFX_C_API bgfx_frame_buffer_handle_t bgfx_create_frame_buffer_from_nwh(void* _nwh, uint16_t _width, uint16_t _height, bgfx_texture_format_t _format, bgfx_texture_format_t _depthFormat);
+BGFX_C_API bgfx_frame_buffer_handle_t bgfx_create_frame_buffer_from_swap_chain(const bgfx_swap_chain_t* _desc);
+
+/**
+ * Change a swap chain's size, format or per-surface flags, in place.
+ *
+ * The frame buffer handle stays valid, so nothing that refers to it has to be
+ * rebuilt. Pass `BGFX_INVALID_HANDLE` to address the window bgfx was
+ * initialized with.
+ *
+ * @attention Availability depends on: `BGFX_CAPS_SWAP_CHAIN`.
+ *
+ * @param[in] _handle Window frame buffer handle. The window bgfx was initialized
+ *  with is not addressed here; it is `bgfx::reset`'s swap chain.
+ * @param[in] _desc Swap chain description. See: `bgfx::SwapChain`.
+ *
+ */
+BGFX_C_API void bgfx_update_swap_chain(bgfx_frame_buffer_handle_t _handle, const bgfx_swap_chain_t* _desc);
 
 /**
  * Set frame buffer debug name.
@@ -3264,8 +3304,6 @@ BGFX_C_API void bgfx_encoder_set_transient_vertex_buffer_with_layout(bgfx_encode
  * Set number of vertices for auto generated vertices use in conjunction
  * with gl_VertexID.
  *
- * @attention Availability depends on: `BGFX_CAPS_VERTEX_ID`.
- *
  * @param[in] _numVertices Number of vertices.
  *
  */
@@ -3304,8 +3342,6 @@ BGFX_C_API void bgfx_encoder_set_instance_data_from_dynamic_vertex_buffer(bgfx_e
 /**
  * Set number of instances for auto generated instances use in conjunction
  * with gl_InstanceID.
- *
- * @attention Availability depends on: `BGFX_CAPS_VERTEX_ID`.
  *
  * @param[in] _numInstances Number of instances.
  *
@@ -3546,7 +3582,6 @@ BGFX_C_API void bgfx_encoder_discard(bgfx_encoder_t* _this, uint8_t _flags);
  *   draw commands are executed after blit and compute commands.
  *
  * @attention Destination texture must be created with `BGFX_TEXTURE_BLIT_DST` flag.
- * @attention Availability depends on: `BGFX_CAPS_TEXTURE_BLIT`.
  *
  * @param[in] _id View id.
  * @param[in] _dst Destination texture region.
@@ -3594,7 +3629,6 @@ BGFX_C_API void bgfx_encoder_blit_buffer(bgfx_encoder_t* _this, bgfx_view_id_t _
  *
  * @attention Destination buffer must be created with `BGFX_BUFFER_COMPUTE_WRITE`, or
  *   `BGFX_BUFFER_DRAW_INDIRECT` flag.
- * @attention Availability depends on: `BGFX_CAPS_TEXTURE_BLIT`.
  *
  * @param[in] _id View id.
  * @param[in] _dst Destination buffer region.
@@ -3618,7 +3652,6 @@ BGFX_C_API void bgfx_encoder_blit_to_buffer(bgfx_encoder_t* _this, bgfx_view_id_
  * @attention Source buffer must be created with one of `BGFX_BUFFER_COMPUTE_*`, or
  *   `BGFX_BUFFER_DRAW_INDIRECT` flags.
  * @attention Destination texture must be created with `BGFX_TEXTURE_BLIT_DST` flag.
- * @attention Availability depends on: `BGFX_CAPS_TEXTURE_BLIT`.
  *
  * @param[in] _id View id.
  * @param[in] _dst Destination texture region.
@@ -3688,16 +3721,6 @@ BGFX_C_API void bgfx_request_screen_shot(bgfx_frame_buffer_handle_t _handle, con
 BGFX_C_API bgfx_render_frame_t bgfx_render_frame(int32_t _msecs);
 
 /**
- * Set platform data.
- *
- * @warning Must be called before `bgfx::init`.
- *
- * @param[in] _data Platform data.
- *
- */
-BGFX_C_API void bgfx_set_platform_data(const bgfx_platform_data_t * _data);
-
-/**
  * Get internal data for interop.
  *
  * @attention It's expected you understand some bgfx internals before you
@@ -3707,55 +3730,6 @@ BGFX_C_API void bgfx_set_platform_data(const bgfx_platform_data_t * _data);
  *
  */
 BGFX_C_API const bgfx_internal_data_t* bgfx_get_internal_data(void);
-
-/**
- * Override internal texture with externally created texture. Previously
- * created internal texture will released.
- *
- * @attention It's expected you understand some bgfx internals before you
- *   use this call.
- *
- * @warning Must be called only on render thread.
- *
- * @param[in] _handle Texture handle.
- * @param[in] _ptr Native API pointer to texture.
- * @param[in] _layerIndex Layer index for texture arrays (only implemented for D3D11).
- *
- * @returns Native API pointer to texture. If result is 0, texture is not created
- *  yet from the main thread.
- *
- */
-BGFX_C_API uintptr_t bgfx_override_internal_texture_ptr(bgfx_texture_handle_t _handle, uintptr_t _ptr, uint16_t _layerIndex);
-
-/**
- * Override internal texture by creating new texture. Previously created
- * internal texture will released.
- *
- * @attention It's expected you understand some bgfx internals before you
- *   use this call.
- *
- * @returns Native API pointer to texture. If result is 0, texture is not created yet from the
- *   main thread.
- *
- * @warning Must be called only on render thread.
- *
- * @param[in] _handle Texture handle.
- * @param[in] _width Width.
- * @param[in] _height Height.
- * @param[in] _numMips Number of mip-maps.
- * @param[in] _format Texture format. See: `TextureFormat::Enum`.
- * @param[in] _flags Texture creation (see `BGFX_TEXTURE_*`.), and sampler (see `BGFX_SAMPLER_*`)
- *  flags. Default texture sampling mode is linear, and wrap mode is repeat.
- *  - `BGFX_SAMPLER_[U/V/W]_[MIRROR/CLAMP]` - Mirror or clamp to edge wrap
- *    mode.
- *  - `BGFX_SAMPLER_[MIN/MAG/MIP]_[POINT/ANISOTROPIC]` - Point or anisotropic
- *    sampling.
- *
- * @returns Native API pointer to texture. If result is 0, texture is not created
- *  yet from the main thread.
- *
- */
-BGFX_C_API uintptr_t bgfx_override_internal_texture(bgfx_texture_handle_t _handle, uint16_t _width, uint16_t _height, uint8_t _numMips, bgfx_texture_format_t _format, uint64_t _flags);
 
 /**
  * Sets a debug marker. This allows you to group graphics calls together for easy browsing in
@@ -3998,8 +3972,6 @@ BGFX_C_API void bgfx_set_transient_vertex_buffer_with_layout(uint8_t _stream, co
  * Set number of vertices for auto generated vertices use in conjunction
  * with gl_VertexID.
  *
- * @attention Availability depends on: `BGFX_CAPS_VERTEX_ID`.
- *
  * @param[in] _numVertices Number of vertices.
  *
  */
@@ -4038,8 +4010,6 @@ BGFX_C_API void bgfx_set_instance_data_from_dynamic_vertex_buffer(bgfx_dynamic_v
 /**
  * Set number of instances for auto generated instances use in conjunction
  * with gl_InstanceID.
- *
- * @attention Availability depends on: `BGFX_CAPS_VERTEX_ID`.
  *
  * @param[in] _numInstances Number of instances.
  *
@@ -4278,7 +4248,6 @@ BGFX_C_API void bgfx_discard(uint8_t _flags);
  *   draw commands are executed after blit and compute commands.
  *
  * @attention Destination texture must be created with `BGFX_TEXTURE_BLIT_DST` flag.
- * @attention Availability depends on: `BGFX_CAPS_TEXTURE_BLIT`.
  *
  * @param[in] _id View id.
  * @param[in] _dst Destination texture region.
@@ -4326,7 +4295,6 @@ BGFX_C_API void bgfx_blit_buffer(bgfx_view_id_t _id, const bgfx_buffer_region_t 
  *
  * @attention Destination buffer must be created with `BGFX_BUFFER_COMPUTE_WRITE`, or
  *   `BGFX_BUFFER_DRAW_INDIRECT` flag.
- * @attention Availability depends on: `BGFX_CAPS_TEXTURE_BLIT`.
  *
  * @param[in] _id View id.
  * @param[in] _dst Destination buffer region.
@@ -4350,7 +4318,6 @@ BGFX_C_API void bgfx_blit_to_buffer(bgfx_view_id_t _id, const bgfx_buffer_region
  * @attention Source buffer must be created with one of `BGFX_BUFFER_COMPUTE_*`, or
  *   `BGFX_BUFFER_DRAW_INDIRECT` flags.
  * @attention Destination texture must be created with `BGFX_TEXTURE_BLIT_DST` flag.
- * @attention Availability depends on: `BGFX_CAPS_TEXTURE_BLIT`.
  *
  * @param[in] _id View id.
  * @param[in] _dst Destination texture region.
@@ -4453,7 +4420,8 @@ typedef enum bgfx_function_id
     BGFX_FUNCTION_ID_CREATE_FRAME_BUFFER_SCALED,
     BGFX_FUNCTION_ID_CREATE_FRAME_BUFFER_FROM_HANDLES,
     BGFX_FUNCTION_ID_CREATE_FRAME_BUFFER_FROM_ATTACHMENT,
-    BGFX_FUNCTION_ID_CREATE_FRAME_BUFFER_FROM_NWH,
+    BGFX_FUNCTION_ID_CREATE_FRAME_BUFFER_FROM_SWAP_CHAIN,
+    BGFX_FUNCTION_ID_UPDATE_SWAP_CHAIN,
     BGFX_FUNCTION_ID_SET_FRAME_BUFFER_NAME,
     BGFX_FUNCTION_ID_GET_TEXTURE,
     BGFX_FUNCTION_ID_DESTROY_FRAME_BUFFER,
@@ -4530,10 +4498,7 @@ typedef enum bgfx_function_id
     BGFX_FUNCTION_ID_ENCODER_BLIT_FROM_BUFFER,
     BGFX_FUNCTION_ID_REQUEST_SCREEN_SHOT,
     BGFX_FUNCTION_ID_RENDER_FRAME,
-    BGFX_FUNCTION_ID_SET_PLATFORM_DATA,
     BGFX_FUNCTION_ID_GET_INTERNAL_DATA,
-    BGFX_FUNCTION_ID_OVERRIDE_INTERNAL_TEXTURE_PTR,
-    BGFX_FUNCTION_ID_OVERRIDE_INTERNAL_TEXTURE,
     BGFX_FUNCTION_ID_SET_MARKER,
     BGFX_FUNCTION_ID_SET_STATE,
     BGFX_FUNCTION_ID_SET_CONDITION,
@@ -4610,7 +4575,7 @@ struct bgfx_interface_vtbl
     void (*init_ctor)(bgfx_init_t* _init);
     bool (*init)(const bgfx_init_t * _init);
     void (*shutdown)(void);
-    void (*reset)(uint32_t _width, uint32_t _height, uint32_t _flags, bgfx_texture_format_t _format);
+    void (*reset)(uint32_t _flags, const bgfx_swap_chain_t* _swapChain);
     uint32_t (*frame)(uint8_t _flags);
     bgfx_renderer_type_t (*get_renderer_type)(void);
     const bgfx_caps_t* (*get_caps)(void);
@@ -4619,7 +4584,7 @@ struct bgfx_interface_vtbl
     const bgfx_memory_t* (*copy)(const void* _data, uint32_t _size);
     const bgfx_memory_t* (*make_ref)(const void* _data, uint32_t _size);
     const bgfx_memory_t* (*make_ref_release)(const void* _data, uint32_t _size, bgfx_release_fn_t _releaseFn, void* _userData);
-    void (*set_debug)(uint32_t _debug);
+    void (*set_debug)(uint32_t _debug, bgfx_frame_buffer_handle_t _handle, uint8_t _scale);
     void (*dbg_text_clear)(uint8_t _attr, bool _small);
     void (*dbg_text_printf)(uint16_t _x, uint16_t _y, uint8_t _attr, const char* _format, ... );
     void (*dbg_text_vprintf)(uint16_t _x, uint16_t _y, uint8_t _attr, const char* _format, va_list _argList);
@@ -4678,7 +4643,8 @@ struct bgfx_interface_vtbl
     bgfx_frame_buffer_handle_t (*create_frame_buffer_scaled)(bgfx_backbuffer_ratio_t _ratio, bgfx_texture_format_t _format, uint64_t _textureFlags);
     bgfx_frame_buffer_handle_t (*create_frame_buffer_from_handles)(uint8_t _num, const bgfx_texture_handle_t* _handles, bool _destroyTexture);
     bgfx_frame_buffer_handle_t (*create_frame_buffer_from_attachment)(uint8_t _num, const bgfx_attachment_t* _attachment, bool _destroyTexture);
-    bgfx_frame_buffer_handle_t (*create_frame_buffer_from_nwh)(void* _nwh, uint16_t _width, uint16_t _height, bgfx_texture_format_t _format, bgfx_texture_format_t _depthFormat);
+    bgfx_frame_buffer_handle_t (*create_frame_buffer_from_swap_chain)(const bgfx_swap_chain_t* _desc);
+    void (*update_swap_chain)(bgfx_frame_buffer_handle_t _handle, const bgfx_swap_chain_t* _desc);
     void (*set_frame_buffer_name)(bgfx_frame_buffer_handle_t _handle, const char* _name, int32_t _len);
     bgfx_texture_handle_t (*get_texture)(bgfx_frame_buffer_handle_t _handle, uint8_t _attachment);
     void (*destroy_frame_buffer)(bgfx_frame_buffer_handle_t _handle);
@@ -4755,10 +4721,7 @@ struct bgfx_interface_vtbl
     void (*encoder_blit_from_buffer)(bgfx_encoder_t* _this, bgfx_view_id_t _id, const bgfx_texture_region_t * _dst, const bgfx_buffer_region_t * _src);
     void (*request_screen_shot)(bgfx_frame_buffer_handle_t _handle, const char* _filePath);
     bgfx_render_frame_t (*render_frame)(int32_t _msecs);
-    void (*set_platform_data)(const bgfx_platform_data_t * _data);
     const bgfx_internal_data_t* (*get_internal_data)(void);
-    uintptr_t (*override_internal_texture_ptr)(bgfx_texture_handle_t _handle, uintptr_t _ptr, uint16_t _layerIndex);
-    uintptr_t (*override_internal_texture)(bgfx_texture_handle_t _handle, uint16_t _width, uint16_t _height, uint8_t _numMips, bgfx_texture_format_t _format, uint64_t _flags);
     void (*set_marker)(const char* _name, int32_t _len);
     void (*set_state)(uint64_t _state, uint32_t _rgba);
     void (*set_condition)(bgfx_occlusion_query_handle_t _handle, bool _visible);

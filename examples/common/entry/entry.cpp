@@ -29,6 +29,25 @@ namespace entry
 	static uint32_t s_height = ENTRY_DEFAULT_HEIGHT;
 	static bool s_exit = false;
 
+	static void resetMainWindow(uint32_t _width, uint32_t _height, uint32_t _reset)
+	{
+		constexpr uint32_t kSwapChainFlags = 0
+			| BGFX_SWAP_CHAIN_FULLSCREEN_MASK
+			| BGFX_SWAP_CHAIN_MSAA_MASK
+			| BGFX_SWAP_CHAIN_SRGB_BACKBUFFER
+			| BGFX_SWAP_CHAIN_HDR10
+			| BGFX_SWAP_CHAIN_HIDPI
+			| BGFX_SWAP_CHAIN_TRANSPARENT_BACKBUFFER
+			;
+
+		bgfx::SwapChain swapChain;
+		swapChain.width  = _width;
+		swapChain.height = _height;
+		swapChain.flags  = _reset &  kSwapChainFlags;
+
+		bgfx::reset(_reset & ~kSwapChainFlags, &swapChain);
+	}
+
 	static bx::FileReaderI* s_fileReader = NULL;
 	static bx::FileWriterI* s_fileWriter = NULL;
 
@@ -648,27 +667,23 @@ restart:
 			{
 				selected = app;
 			}
-#if 0
-			DBG("%c %s, %s"
-				, app == selected ? '>' : ' '
-				, app->getName()
-				, app->getDescription()
-				);
-#endif // 0
 		}
 
 		int32_t result = bx::kExitSuccess;
 		s_restartApp[0] = '\0';
-		if (0 == s_numApps)
+
+		char  extraArgsBuf[256];
+		char  tokenBuf[256];
+		char* extraArgv[32];
+		const char* restartArgv[64];
+
+		int argc = _argc;
+		const char* const* argv = _argv;
+
+		if (0 != bx::strLen(s_restartArgs) )
 		{
-			result = ::_main_(_argc, (char**)_argv);
-		}
-		else if (0 != bx::strLen(s_restartArgs) )
-		{
-			char extraArgsBuf[256];
 			bx::strCopy(extraArgsBuf, BX_COUNTOF(extraArgsBuf), s_restartArgs);
 
-			const char* restartArgv[64];
 			int restartArgc = 0;
 
 			if (0 < _argc)
@@ -676,9 +691,7 @@ restart:
 				restartArgv[restartArgc++] = _argv[0];
 			}
 
-			char* extraArgv[32];
 			int extraArgc;
-			char tokenBuf[256];
 			uint32_t tokenBufSize = sizeof(tokenBuf);
 			bx::tokenizeCommandLine(extraArgsBuf, tokenBuf, tokenBufSize, extraArgc, extraArgv, BX_COUNTOF(extraArgv) );
 
@@ -687,11 +700,17 @@ restart:
 				restartArgv[restartArgc++] = extraArgv[ii];
 			}
 
-			result = runApp(getCurrentApp(selected), restartArgc, restartArgv);
+			argc = restartArgc;
+			argv = restartArgv;
+		}
+
+		if (0 == s_numApps)
+		{
+			result = ::_main_(argc, (char**)argv);
 		}
 		else
 		{
-			result = runApp(getCurrentApp(selected), _argc, _argv);
+			result = runApp(getCurrentApp(selected), argc, argv);
 		}
 
 		if (0 != bx::strLen(s_restartApp) )
@@ -843,7 +862,7 @@ restart:
 		{
 			_reset = s_reset;
 			BX_TRACE("bgfx::reset(%d, %d, 0x%x)", _width, _height, _reset);
-			bgfx::reset(_width, _height, _reset);
+			resetMainWindow(_width, _height, _reset);
 			inputSetMouseResolution(uint16_t(_width), uint16_t(_height) );
 		}
 
@@ -1023,7 +1042,7 @@ restart:
 		{
 			_reset = s_reset;
 			BX_TRACE("bgfx::reset(%d, %d, 0x%x)", s_window[0].m_width, s_window[0].m_height, _reset);
-			bgfx::reset(s_window[0].m_width, s_window[0].m_height, _reset);
+			resetMainWindow(s_window[0].m_width, s_window[0].m_height, _reset);
 			inputSetMouseResolution(uint16_t(s_window[0].m_width), uint16_t(s_window[0].m_height) );
 		}
 

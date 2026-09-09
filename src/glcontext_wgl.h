@@ -69,19 +69,24 @@ typedef void (APIENTRYP PFNGLSTENCILOPPROC) (GLenum fail, GLenum zfail, GLenum z
 	struct GlContext
 	{
 		GlContext()
-			: m_current(NULL)
+			: m_contextAttrs()
+			, m_pfd()
+			, m_current(NULL)
 			, m_opengl32dll(NULL)
+			, m_nwh(NULL)
 			, m_context(NULL)
 			, m_hdc(NULL)
 			, m_dummyHwnd(NULL)
+			, m_ownsContext(false)
 			, m_msaaContext(false)
 			, m_swapInterval(0)
+			, m_pixelFormat(0)
 		{
 		}
 
-		void create(const Resolution& _resolution);
+		void create(const SwapChain& _swapChain, uint32_t _reset);
 		void destroy();
-		void resize(const Resolution& _resolution);
+		void resize(const SwapChain& _swapChain, uint32_t _reset);
 
 		uint64_t getCaps() const;
 		SwapChainGL* createSwapChain(void* _nwh, int32_t _width, int32_t _height);
@@ -97,15 +102,17 @@ typedef void (APIENTRYP PFNGLSTENCILOPPROC) (GLenum fail, GLenum zfail, GLenum z
 		}
 
 		int32_t m_contextAttrs[9];
-		int m_pixelFormat;
 		PIXELFORMATDESCRIPTOR m_pfd;
 		SwapChainGL* m_current;
 		void* m_opengl32dll;
+		void* m_nwh;
 		HGLRC m_context;
-		HDC  m_hdc;
-		HWND m_dummyHwnd;
-		bool m_msaaContext;
-		int  m_swapInterval;
+		HDC   m_hdc;
+		HWND  m_dummyHwnd;
+		bool  m_ownsContext;
+		bool  m_msaaContext;
+		int   m_swapInterval;
+		int   m_pixelFormat;
 	};
 } /* namespace gl */ } // namespace bgfx
 
