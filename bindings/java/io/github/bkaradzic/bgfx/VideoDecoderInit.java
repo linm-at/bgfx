@@ -8,6 +8,7 @@
 
 package io.github.bkaradzic.bgfx;
 
+import java.lang.AutoCloseable;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
@@ -18,14 +19,17 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.nio.file.Path;
 import java.util.Objects;
-import java.lang.AutoCloseable;
 
-import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import static io.github.bkaradzic.bgfx.BGFX.*;
+import io.github.bkaradzic.bgfx.*;
+import io.github.bkaradzic.bgfx.util.FFMUtil;
+import io.github.bkaradzic.bgfx.util.NativeObject;
+import io.github.bkaradzic.bgfx.util.Unsigned;
+import static io.github.bkaradzic.bgfx.Bgfx.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 
 /**
@@ -81,16 +85,17 @@ public final class VideoDecoderInit extends NativeObject {
 	 * Structure magic. Must be {@code BX_MAKEFOURCC('V', 'D', 'I', 0x0)}.
 	 * @return the field value
 	 */
-	public int magic() {
-		return (int) VH_MAGIC.get(segment(), 0L);
+	public @Unsigned int magic() {
+		return (@Unsigned int) VH_MAGIC.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code magic} field.
+	 * Sets the native {@code magic} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void magic(int value) {
+	public VideoDecoderInit magic(@Unsigned int value) {
 		VH_MAGIC.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -102,11 +107,12 @@ public final class VideoDecoderInit extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code codec} field.
+	 * Sets the native {@code codec} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void codec(VideoCodec value) {
+	public VideoDecoderInit codec(VideoCodec value) {
 		VH_CODEC.set(segment(), 0L, value.ordinal());
+		return this;
 	}
 
 	/**
@@ -118,27 +124,37 @@ public final class VideoDecoderInit extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code parameterSets} field.
+	 * Sets the native {@code parameterSets} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void parameterSets(MemorySegment value) {
+	public VideoDecoderInit parameterSets(MemorySegment value) {
 		VH_PARAMETERSETS.set(segment(), 0L, address(value));
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code parameterSets} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public VideoDecoderInit parameterSets(int value) {
+		return parameterSets(NativeObject.toUnsignedByte(value));
 	}
 
 	/**
 	 * Parameter sets size in bytes.
 	 * @return the field value
 	 */
-	public int parameterSetsSize() {
-		return (int) VH_PARAMETERSETSSIZE.get(segment(), 0L);
+	public @Unsigned int parameterSetsSize() {
+		return (@Unsigned int) VH_PARAMETERSETSSIZE.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code parameterSetsSize} field.
+	 * Sets the native {@code parameterSetsSize} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void parameterSetsSize(int value) {
+	public VideoDecoderInit parameterSetsSize(@Unsigned int value) {
 		VH_PARAMETERSETSSIZE.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -147,31 +163,41 @@ public final class VideoDecoderInit extends NativeObject {
 	 * default. Ignored in RETAIN mode (the retain cache is unbounded).
 	 * @return the field value
 	 */
-	public int cachedAuBytes() {
-		return (int) VH_CACHEDAUBYTES.get(segment(), 0L);
+	public @Unsigned int cachedAuBytes() {
+		return (@Unsigned int) VH_CACHEDAUBYTES.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code cachedAuBytes} field.
+	 * Sets the native {@code cachedAuBytes} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void cachedAuBytes(int value) {
+	public VideoDecoderInit cachedAuBytes(@Unsigned int value) {
 		VH_CACHEDAUBYTES.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Decoder lifetime flags. See: {@code BGFX_VIDEO_DECODER_INIT_*}.
 	 * @return the field value
 	 */
-	public byte flags() {
-		return (byte) VH_FLAGS.get(segment(), 0L);
+	public @Unsigned byte flags() {
+		return (@Unsigned byte) VH_FLAGS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code flags} field.
+	 * Sets the native {@code flags} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void flags(byte value) {
+	public VideoDecoderInit flags(@Unsigned byte value) {
 		VH_FLAGS.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code flags} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public VideoDecoderInit flags(int value) {
+		return flags(NativeObject.toUnsignedByte(value));
 	}
 }

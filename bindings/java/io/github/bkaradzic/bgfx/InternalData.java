@@ -8,6 +8,7 @@
 
 package io.github.bkaradzic.bgfx;
 
+import java.lang.AutoCloseable;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
@@ -18,14 +19,17 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.nio.file.Path;
 import java.util.Objects;
-import java.lang.AutoCloseable;
 
-import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import static io.github.bkaradzic.bgfx.BGFX.*;
+import io.github.bkaradzic.bgfx.*;
+import io.github.bkaradzic.bgfx.util.FFMUtil;
+import io.github.bkaradzic.bgfx.util.NativeObject;
+import io.github.bkaradzic.bgfx.util.Unsigned;
+import static io.github.bkaradzic.bgfx.Bgfx.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 
 /**
@@ -68,11 +72,12 @@ public final class InternalData extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code caps} field.
+	 * Sets the native {@code caps} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void caps(Caps value) {
+	public InternalData caps(Caps value) {
 		VH_CAPS.set(segment(), 0L, address(value));
+		return this;
 	}
 
 	/**
@@ -84,10 +89,11 @@ public final class InternalData extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code context} field.
+	 * Sets the native {@code context} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void context(MemorySegment value) {
+	public InternalData context(MemorySegment value) {
 		VH_CONTEXT.set(segment(), 0L, address(value));
+		return this;
 	}
 }

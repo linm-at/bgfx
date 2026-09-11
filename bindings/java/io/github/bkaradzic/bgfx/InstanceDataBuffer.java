@@ -8,6 +8,7 @@
 
 package io.github.bkaradzic.bgfx;
 
+import java.lang.AutoCloseable;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
@@ -18,14 +19,17 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.nio.file.Path;
 import java.util.Objects;
-import java.lang.AutoCloseable;
 
-import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import static io.github.bkaradzic.bgfx.BGFX.*;
+import io.github.bkaradzic.bgfx.*;
+import io.github.bkaradzic.bgfx.util.FFMUtil;
+import io.github.bkaradzic.bgfx.util.NativeObject;
+import io.github.bkaradzic.bgfx.util.Unsigned;
+import static io.github.bkaradzic.bgfx.Bgfx.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 
 /**
@@ -80,75 +84,96 @@ public final class InstanceDataBuffer extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code data} field.
+	 * Sets the native {@code data} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void data(MemorySegment value) {
+	public InstanceDataBuffer data(MemorySegment value) {
 		VH_DATA.set(segment(), 0L, address(value));
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code data} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public InstanceDataBuffer data(int value) {
+		return data(NativeObject.toUnsignedByte(value));
 	}
 
 	/**
 	 * Data size.
 	 * @return the field value
 	 */
-	public int size() {
-		return (int) VH_SIZE.get(segment(), 0L);
+	public @Unsigned int size() {
+		return (@Unsigned int) VH_SIZE.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code size} field.
+	 * Sets the native {@code size} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void size(int value) {
+	public InstanceDataBuffer size(@Unsigned int value) {
 		VH_SIZE.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Offset in vertex buffer.
 	 * @return the field value
 	 */
-	public int offset() {
-		return (int) VH_OFFSET.get(segment(), 0L);
+	public @Unsigned int offset() {
+		return (@Unsigned int) VH_OFFSET.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code offset} field.
+	 * Sets the native {@code offset} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void offset(int value) {
+	public InstanceDataBuffer offset(@Unsigned int value) {
 		VH_OFFSET.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Number of instances.
 	 * @return the field value
 	 */
-	public int num() {
-		return (int) VH_NUM.get(segment(), 0L);
+	public @Unsigned int num() {
+		return (@Unsigned int) VH_NUM.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code num} field.
+	 * Sets the native {@code num} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void num(int value) {
+	public InstanceDataBuffer num(@Unsigned int value) {
 		VH_NUM.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Vertex buffer stride.
 	 * @return the field value
 	 */
-	public short stride() {
-		return (short) VH_STRIDE.get(segment(), 0L);
+	public @Unsigned short stride() {
+		return (@Unsigned short) VH_STRIDE.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code stride} field.
+	 * Sets the native {@code stride} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void stride(short value) {
+	public InstanceDataBuffer stride(@Unsigned short value) {
 		VH_STRIDE.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code stride} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public InstanceDataBuffer stride(int value) {
+		return stride(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
@@ -160,10 +185,11 @@ public final class InstanceDataBuffer extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code handle} field.
+	 * Sets the native {@code handle} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void handle(VertexBufferHandle value) {
+	public InstanceDataBuffer handle(VertexBufferHandle value) {
 		value.write(slice(MH_HANDLE, segment()));
+		return this;
 	}
 }

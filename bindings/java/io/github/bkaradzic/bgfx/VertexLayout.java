@@ -8,6 +8,7 @@
 
 package io.github.bkaradzic.bgfx;
 
+import java.lang.AutoCloseable;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
@@ -18,14 +19,17 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.nio.file.Path;
 import java.util.Objects;
-import java.lang.AutoCloseable;
 
-import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import static io.github.bkaradzic.bgfx.BGFX.*;
+import io.github.bkaradzic.bgfx.*;
+import io.github.bkaradzic.bgfx.util.FFMUtil;
+import io.github.bkaradzic.bgfx.util.NativeObject;
+import io.github.bkaradzic.bgfx.util.Unsigned;
+import static io.github.bkaradzic.bgfx.Bgfx.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 
 /**
@@ -69,32 +73,42 @@ public final class VertexLayout extends NativeObject {
 	 * Hash.
 	 * @return the field value
 	 */
-	public int hash() {
-		return (int) VH_HASH.get(segment(), 0L);
+	public @Unsigned int hash() {
+		return (@Unsigned int) VH_HASH.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code hash} field.
+	 * Sets the native {@code hash} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void hash(int value) {
+	public VertexLayout hash(@Unsigned int value) {
 		VH_HASH.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Stride.
 	 * @return the field value
 	 */
-	public short stride() {
-		return (short) VH_STRIDE.get(segment(), 0L);
+	public @Unsigned short stride() {
+		return (@Unsigned short) VH_STRIDE.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code stride} field.
+	 * Sets the native {@code stride} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void stride(short value) {
+	public VertexLayout stride(@Unsigned short value) {
 		VH_STRIDE.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code stride} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public VertexLayout stride(int value) {
+		return stride(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
@@ -137,7 +151,7 @@ public final class VertexLayout extends NativeObject {
 	 * @param _asInt Packaging rule for vertexPack, vertexUnpack, and vertexConvert for AttribType.UINT8 and AttribType.INT16. Unpacking code must be implemented inside vertex shader.
 	 * @return Returns itself.
 	 */
-	public final VertexLayout add(Attrib _attrib, byte _num, AttribType _type, boolean _normalized, boolean _asInt) {
+	public final VertexLayout add(Attrib _attrib, @Unsigned byte _num, AttribType _type, boolean _normalized, boolean _asInt) {
 		try {
 			return new VertexLayout((MemorySegment) MH_VERTEX_LAYOUT_ADD.invokeExact(segment(), _attrib.ordinal(), _num, _type.ordinal(), _normalized, _asInt));
 		} catch (Throwable ex) {
@@ -179,7 +193,7 @@ public final class VertexLayout extends NativeObject {
 	 * @param _num Number of bytes to skip.
 	 * @return Returns itself.
 	 */
-	public final VertexLayout skip(byte _num) {
+	public final VertexLayout skip(@Unsigned byte _num) {
 		try {
 			return new VertexLayout((MemorySegment) MH_VERTEX_LAYOUT_SKIP.invokeExact(segment(), _num));
 		} catch (Throwable ex) {
@@ -203,9 +217,9 @@ public final class VertexLayout extends NativeObject {
 	 * @param _attrib Attribute semantics. See: {@code Attrib}
 	 * @return Relative attribute offset from the vertex.
 	 */
-	public final short getOffset(Attrib _attrib) {
+	public final @Unsigned short getOffset(Attrib _attrib) {
 		try {
-			return (short) MH_VERTEX_LAYOUT_GET_OFFSET.invokeExact(segment(), _attrib.ordinal());
+			return (@Unsigned short) MH_VERTEX_LAYOUT_GET_OFFSET.invokeExact(segment(), _attrib.ordinal());
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -215,9 +229,9 @@ public final class VertexLayout extends NativeObject {
 	 * Returns vertex stride.
 	 * @return Vertex stride.
 	 */
-	public final short getStride() {
+	public final @Unsigned short getStride() {
 		try {
-			return (short) MH_VERTEX_LAYOUT_GET_STRIDE.invokeExact(segment());
+			return (@Unsigned short) MH_VERTEX_LAYOUT_GET_STRIDE.invokeExact(segment());
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -228,9 +242,9 @@ public final class VertexLayout extends NativeObject {
 	 * @param _num Number of vertices.
 	 * @return Size of vertex buffer for number of vertices.
 	 */
-	public final int getSize(int _num) {
+	public final @Unsigned int getSize(@Unsigned int _num) {
 		try {
-			return (int) MH_VERTEX_LAYOUT_GET_SIZE.invokeExact(segment(), _num);
+			return (@Unsigned int) MH_VERTEX_LAYOUT_GET_SIZE.invokeExact(segment(), _num);
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}

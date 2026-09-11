@@ -8,6 +8,7 @@
 
 package io.github.bkaradzic.bgfx.caps;
 
+import java.lang.AutoCloseable;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
@@ -18,16 +19,18 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.nio.file.Path;
 import java.util.Objects;
-import java.lang.AutoCloseable;
 
-import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import static io.github.bkaradzic.bgfx.BGFX.*;
-import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 import io.github.bkaradzic.bgfx.*;
+import io.github.bkaradzic.bgfx.util.FFMUtil;
+import io.github.bkaradzic.bgfx.util.NativeObject;
+import io.github.bkaradzic.bgfx.util.Unsigned;
+import static io.github.bkaradzic.bgfx.Bgfx.*;
+import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 
 /**
  * GPU info.
@@ -64,31 +67,49 @@ public final class GPU extends NativeObject {
 	 * Vendor PCI id. See {@code BGFX_PCI_ID_*}.
 	 * @return the field value
 	 */
-	public short vendorId() {
-		return (short) VH_VENDORID.get(segment(), 0L);
+	public @Unsigned short vendorId() {
+		return (@Unsigned short) VH_VENDORID.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code vendorId} field.
+	 * Sets the native {@code vendorId} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void vendorId(short value) {
+	public GPU vendorId(@Unsigned short value) {
 		VH_VENDORID.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code vendorId} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public GPU vendorId(int value) {
+		return vendorId(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Device id.
 	 * @return the field value
 	 */
-	public short deviceId() {
-		return (short) VH_DEVICEID.get(segment(), 0L);
+	public @Unsigned short deviceId() {
+		return (@Unsigned short) VH_DEVICEID.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code deviceId} field.
+	 * Sets the native {@code deviceId} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void deviceId(short value) {
+	public GPU deviceId(@Unsigned short value) {
 		VH_DEVICEID.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code deviceId} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public GPU deviceId(int value) {
+		return deviceId(NativeObject.toUnsignedShort(value));
 	}
 }

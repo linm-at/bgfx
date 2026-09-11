@@ -8,6 +8,7 @@
 
 package io.github.bkaradzic.bgfx;
 
+import java.lang.AutoCloseable;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
@@ -18,14 +19,17 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.nio.file.Path;
 import java.util.Objects;
-import java.lang.AutoCloseable;
 
-import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import static io.github.bkaradzic.bgfx.BGFX.*;
+import io.github.bkaradzic.bgfx.*;
+import io.github.bkaradzic.bgfx.util.FFMUtil;
+import io.github.bkaradzic.bgfx.util.NativeObject;
+import io.github.bkaradzic.bgfx.util.Unsigned;
+import static io.github.bkaradzic.bgfx.Bgfx.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 
 /**
@@ -89,27 +93,29 @@ public final class BufferRegion extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code handle} field.
+	 * Sets the native {@code handle} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void handle(BufferHandle value) {
+	public BufferRegion handle(BufferHandle value) {
 		value.writeTagged(slice(MH_HANDLE, segment()));
+		return this;
 	}
 
 	/**
 	 * Byte offset into the buffer.
 	 * @return the field value
 	 */
-	public int offset() {
-		return (int) VH_OFFSET.get(segment(), 0L);
+	public @Unsigned int offset() {
+		return (@Unsigned int) VH_OFFSET.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code offset} field.
+	 * Sets the native {@code offset} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void offset(int value) {
+	public BufferRegion offset(@Unsigned int value) {
 		VH_OFFSET.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -117,16 +123,17 @@ public final class BufferRegion extends NativeObject {
 	 * buffers, or by {@code read}. 0 uses the rest of the buffer.
 	 * @return the field value
 	 */
-	public int size() {
-		return (int) VH_SIZE.get(segment(), 0L);
+	public @Unsigned int size() {
+		return (@Unsigned int) VH_SIZE.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code size} field.
+	 * Sets the native {@code size} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void size(int value) {
+	public BufferRegion size(@Unsigned int value) {
 		VH_SIZE.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -134,16 +141,17 @@ public final class BufferRegion extends NativeObject {
 	 * of blocks. 0 is tightly packed.
 	 * @return the field value
 	 */
-	public int rowPitch() {
-		return (int) VH_ROWPITCH.get(segment(), 0L);
+	public @Unsigned int rowPitch() {
+		return (@Unsigned int) VH_ROWPITCH.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code rowPitch} field.
+	 * Sets the native {@code rowPitch} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void rowPitch(int value) {
+	public BufferRegion rowPitch(@Unsigned int value) {
 		VH_ROWPITCH.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -151,16 +159,17 @@ public final class BufferRegion extends NativeObject {
 	 * slices, layers or cube faces. 0 is tightly packed.
 	 * @return the field value
 	 */
-	public int slicePitch() {
-		return (int) VH_SLICEPITCH.get(segment(), 0L);
+	public @Unsigned int slicePitch() {
+		return (@Unsigned int) VH_SLICEPITCH.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code slicePitch} field.
+	 * Sets the native {@code slicePitch} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void slicePitch(int value) {
+	public BufferRegion slicePitch(@Unsigned int value) {
 		VH_SLICEPITCH.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -186,7 +195,7 @@ public final class BufferRegion extends NativeObject {
 	 * @param _offset Byte offset into the buffer.
 	 * @param _size Number of bytes. 0 uses the rest of the buffer.
 	 */
-	public final void initBuffer(BufferHandle _handle, int _offset, int _size) {
+	public final void initBuffer(BufferHandle _handle, @Unsigned int _offset, @Unsigned int _size) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_BUFFER_REGION_INIT_BUFFER.invokeExact(segment(), _handle.allocateTagged(arena), _offset, _size);

@@ -8,6 +8,7 @@
 
 package io.github.bkaradzic.bgfx;
 
+import java.lang.AutoCloseable;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
@@ -18,14 +19,17 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.nio.file.Path;
 import java.util.Objects;
-import java.lang.AutoCloseable;
 
-import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import static io.github.bkaradzic.bgfx.BGFX.*;
+import io.github.bkaradzic.bgfx.*;
+import io.github.bkaradzic.bgfx.util.FFMUtil;
+import io.github.bkaradzic.bgfx.util.NativeObject;
+import io.github.bkaradzic.bgfx.util.Unsigned;
+import static io.github.bkaradzic.bgfx.Bgfx.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 
 /**
@@ -83,11 +87,12 @@ public final class PlatformData extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code ndt} field.
+	 * Sets the native {@code ndt} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void ndt(MemorySegment value) {
+	public PlatformData ndt(MemorySegment value) {
 		VH_NDT.set(segment(), 0L, address(value));
+		return this;
 	}
 
 	/**
@@ -100,11 +105,12 @@ public final class PlatformData extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code nwh} field.
+	 * Sets the native {@code nwh} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void nwh(MemorySegment value) {
+	public PlatformData nwh(MemorySegment value) {
 		VH_NWH.set(segment(), 0L, address(value));
+		return this;
 	}
 
 	/**
@@ -117,11 +123,12 @@ public final class PlatformData extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code context} field.
+	 * Sets the native {@code context} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void context(MemorySegment value) {
+	public PlatformData context(MemorySegment value) {
 		VH_CONTEXT.set(segment(), 0L, address(value));
+		return this;
 	}
 
 	/**
@@ -133,11 +140,12 @@ public final class PlatformData extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code queue} field.
+	 * Sets the native {@code queue} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void queue(MemorySegment value) {
+	public PlatformData queue(MemorySegment value) {
 		VH_QUEUE.set(segment(), 0L, address(value));
+		return this;
 	}
 
 	/**
@@ -150,11 +158,12 @@ public final class PlatformData extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code backBuffer} field.
+	 * Sets the native {@code backBuffer} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void backBuffer(MemorySegment value) {
+	public PlatformData backBuffer(MemorySegment value) {
 		VH_BACKBUFFER.set(segment(), 0L, address(value));
+		return this;
 	}
 
 	/**
@@ -167,11 +176,12 @@ public final class PlatformData extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code backBufferDS} field.
+	 * Sets the native {@code backBufferDS} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void backBufferDS(MemorySegment value) {
+	public PlatformData backBufferDS(MemorySegment value) {
 		VH_BACKBUFFERDS.set(segment(), 0L, address(value));
+		return this;
 	}
 
 	/**
@@ -183,10 +193,11 @@ public final class PlatformData extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code type} field.
+	 * Sets the native {@code type} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void type(NativeWindowHandleType value) {
+	public PlatformData type(NativeWindowHandleType value) {
 		VH_TYPE.set(segment(), 0L, value.ordinal());
+		return this;
 	}
 }

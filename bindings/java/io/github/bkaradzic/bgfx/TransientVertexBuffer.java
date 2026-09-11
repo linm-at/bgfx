@@ -8,6 +8,7 @@
 
 package io.github.bkaradzic.bgfx;
 
+import java.lang.AutoCloseable;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
@@ -18,14 +19,17 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.nio.file.Path;
 import java.util.Objects;
-import java.lang.AutoCloseable;
 
-import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import static io.github.bkaradzic.bgfx.BGFX.*;
+import io.github.bkaradzic.bgfx.*;
+import io.github.bkaradzic.bgfx.util.FFMUtil;
+import io.github.bkaradzic.bgfx.util.NativeObject;
+import io.github.bkaradzic.bgfx.util.Unsigned;
+import static io.github.bkaradzic.bgfx.Bgfx.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 
 /**
@@ -80,59 +84,79 @@ public final class TransientVertexBuffer extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code data} field.
+	 * Sets the native {@code data} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void data(MemorySegment value) {
+	public TransientVertexBuffer data(MemorySegment value) {
 		VH_DATA.set(segment(), 0L, address(value));
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code data} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public TransientVertexBuffer data(int value) {
+		return data(NativeObject.toUnsignedByte(value));
 	}
 
 	/**
 	 * Data size.
 	 * @return the field value
 	 */
-	public int size() {
-		return (int) VH_SIZE.get(segment(), 0L);
+	public @Unsigned int size() {
+		return (@Unsigned int) VH_SIZE.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code size} field.
+	 * Sets the native {@code size} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void size(int value) {
+	public TransientVertexBuffer size(@Unsigned int value) {
 		VH_SIZE.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * First vertex.
 	 * @return the field value
 	 */
-	public int startVertex() {
-		return (int) VH_STARTVERTEX.get(segment(), 0L);
+	public @Unsigned int startVertex() {
+		return (@Unsigned int) VH_STARTVERTEX.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code startVertex} field.
+	 * Sets the native {@code startVertex} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void startVertex(int value) {
+	public TransientVertexBuffer startVertex(@Unsigned int value) {
 		VH_STARTVERTEX.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Vertex stride.
 	 * @return the field value
 	 */
-	public short stride() {
-		return (short) VH_STRIDE.get(segment(), 0L);
+	public @Unsigned short stride() {
+		return (@Unsigned short) VH_STRIDE.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code stride} field.
+	 * Sets the native {@code stride} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void stride(short value) {
+	public TransientVertexBuffer stride(@Unsigned short value) {
 		VH_STRIDE.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code stride} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public TransientVertexBuffer stride(int value) {
+		return stride(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
@@ -144,11 +168,12 @@ public final class TransientVertexBuffer extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code handle} field.
+	 * Sets the native {@code handle} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void handle(VertexBufferHandle value) {
+	public TransientVertexBuffer handle(VertexBufferHandle value) {
 		value.write(slice(MH_HANDLE, segment()));
+		return this;
 	}
 
 	/**
@@ -160,10 +185,11 @@ public final class TransientVertexBuffer extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code layoutHandle} field.
+	 * Sets the native {@code layoutHandle} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void layoutHandle(VertexLayoutHandle value) {
+	public TransientVertexBuffer layoutHandle(VertexLayoutHandle value) {
 		value.write(slice(MH_LAYOUTHANDLE, segment()));
+		return this;
 	}
 }

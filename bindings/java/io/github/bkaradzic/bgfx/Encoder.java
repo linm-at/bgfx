@@ -8,6 +8,7 @@
 
 package io.github.bkaradzic.bgfx;
 
+import java.lang.AutoCloseable;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
@@ -18,14 +19,17 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.nio.file.Path;
 import java.util.Objects;
-import java.lang.AutoCloseable;
 
-import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import static io.github.bkaradzic.bgfx.BGFX.*;
+import io.github.bkaradzic.bgfx.*;
+import io.github.bkaradzic.bgfx.util.FFMUtil;
+import io.github.bkaradzic.bgfx.util.NativeObject;
+import io.github.bkaradzic.bgfx.util.Unsigned;
+import static io.github.bkaradzic.bgfx.Bgfx.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 
 /**
@@ -74,7 +78,7 @@ public final class Encoder extends NativeObject {
 	 * @param _state State flags. Default state for primitive type is   triangles. See: {@code BGFX_STATE_DEFAULT}.   - {@code BGFX_STATE_DEPTH_TEST_*} - Depth test function.   - {@code BGFX_STATE_BLEND_*} - See remark 1 about BGFX_STATE_BLEND_FUNC.   - {@code BGFX_STATE_BLEND_EQUATION_*} - See remark 2.   - {@code BGFX_STATE_CULL_*} - Backface culling mode.   - {@code BGFX_STATE_WRITE_*} - Enable R, G, B, A or Z write.   - {@code BGFX_STATE_MSAA} - Enable hardware multisample antialiasing.   - {@code BGFX_STATE_PT_[TRISTRIP/LINES/POINTS]} - Primitive type.
 	 * @param _rgba Sets blend factor used by {@code BGFX_STATE_BLEND_FACTOR} and   {@code BGFX_STATE_BLEND_INV_FACTOR} blend modes.
 	 */
-	public final void setState(long _state, int _rgba) {
+	public final void setState(@Unsigned long _state, @Unsigned int _rgba) {
 		try {
 			MH_ENCODER_SET_STATE.invokeExact(segment(), _state, _rgba);
 		} catch (Throwable ex) {
@@ -102,7 +106,7 @@ public final class Encoder extends NativeObject {
 	 * @param _fstencil Front stencil state.
 	 * @param _bstencil Back stencil state. If back is set to {@code BGFX_STENCIL_NONE} _fstencil is applied to both front and back facing primitives.
 	 */
-	public final void setStencil(int _fstencil, int _bstencil) {
+	public final void setStencil(@Unsigned int _fstencil, @Unsigned int _bstencil) {
 		try {
 			MH_ENCODER_SET_STENCIL.invokeExact(segment(), _fstencil, _bstencil);
 		} catch (Throwable ex) {
@@ -121,9 +125,9 @@ public final class Encoder extends NativeObject {
 	 * @param _height Height of view scissor region.
 	 * @return Scissor cache index.
 	 */
-	public final short setScissor(short _x, short _y, short _width, short _height) {
+	public final @Unsigned short setScissor(@Unsigned short _x, @Unsigned short _y, @Unsigned short _width, @Unsigned short _height) {
 		try {
-			return (short) MH_ENCODER_SET_SCISSOR.invokeExact(segment(), _x, _y, _width, _height);
+			return (@Unsigned short) MH_ENCODER_SET_SCISSOR.invokeExact(segment(), _x, _y, _width, _height);
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -136,7 +140,7 @@ public final class Encoder extends NativeObject {
 	 *   To scissor for all primitives in view see {@code setViewScissor}.
 	 * @param _cache Index in scissor cache.
 	 */
-	public final void setScissorCached(short _cache) {
+	public final void setScissorCached(@Unsigned short _cache) {
 		try {
 			MH_ENCODER_SET_SCISSOR_CACHED.invokeExact(segment(), _cache);
 		} catch (Throwable ex) {
@@ -151,9 +155,9 @@ public final class Encoder extends NativeObject {
 	 * @param _num Number of matrices in array.
 	 * @return Index into matrix cache in case the same model matrix has to be used for other draw primitive call.
 	 */
-	public final int setTransform(MemorySegment _mtx, short _num) {
+	public final @Unsigned int setTransform(MemorySegment _mtx, @Unsigned short _num) {
 		try {
-			return (int) MH_ENCODER_SET_TRANSFORM.invokeExact(segment(), address(_mtx), _num);
+			return (@Unsigned int) MH_ENCODER_SET_TRANSFORM.invokeExact(segment(), address(_mtx), _num);
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -164,7 +168,7 @@ public final class Encoder extends NativeObject {
 	 * @param _cache Index in matrix cache.
 	 * @param _num Number of matrices from cache.
 	 */
-	public final void setTransformCached(int _cache, short _num) {
+	public final void setTransformCached(@Unsigned int _cache, @Unsigned short _num) {
 		try {
 			MH_ENCODER_SET_TRANSFORM_CACHED.invokeExact(segment(), _cache, _num);
 		} catch (Throwable ex) {
@@ -180,9 +184,9 @@ public final class Encoder extends NativeObject {
 	 * @param _num Number of matrices.
 	 * @return Index in matrix cache.
 	 */
-	public final int allocTransform(Transform _transform, short _num) {
+	public final @Unsigned int allocTransform(Transform _transform, @Unsigned short _num) {
 		try {
-			return (int) MH_ENCODER_ALLOC_TRANSFORM.invokeExact(segment(), address(_transform), _num);
+			return (@Unsigned int) MH_ENCODER_ALLOC_TRANSFORM.invokeExact(segment(), address(_transform), _num);
 		} catch (Throwable ex) {
 			throw invocationFailure(ex);
 		}
@@ -194,7 +198,7 @@ public final class Encoder extends NativeObject {
 	 * @param _value Pointer to uniform data.
 	 * @param _num Number of elements. Passing {@code UINT16_MAX} will use the _num passed on uniform creation.
 	 */
-	public final void setUniform(UniformHandle _handle, MemorySegment _value, short _num) {
+	public final void setUniform(UniformHandle _handle, MemorySegment _value, @Unsigned short _num) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_SET_UNIFORM.invokeExact(segment(), _handle.allocate(arena), address(_value), _num);
@@ -210,7 +214,7 @@ public final class Encoder extends NativeObject {
 	 * @param _firstIndex First index to render.
 	 * @param _numIndices Number of indices to render.
 	 */
-	public final void setIndexBuffer(IndexBufferHandle _handle, int _firstIndex, int _numIndices) {
+	public final void setIndexBuffer(IndexBufferHandle _handle, @Unsigned int _firstIndex, @Unsigned int _numIndices) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_SET_INDEX_BUFFER.invokeExact(segment(), _handle.allocate(arena), _firstIndex, _numIndices);
@@ -226,7 +230,7 @@ public final class Encoder extends NativeObject {
 	 * @param _firstIndex First index to render.
 	 * @param _numIndices Number of indices to render.
 	 */
-	public final void setDynamicIndexBuffer(DynamicIndexBufferHandle _handle, int _firstIndex, int _numIndices) {
+	public final void setDynamicIndexBuffer(DynamicIndexBufferHandle _handle, @Unsigned int _firstIndex, @Unsigned int _numIndices) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_SET_DYNAMIC_INDEX_BUFFER.invokeExact(segment(), _handle.allocate(arena), _firstIndex, _numIndices);
@@ -242,7 +246,7 @@ public final class Encoder extends NativeObject {
 	 * @param _firstIndex First index to render.
 	 * @param _numIndices Number of indices to render.
 	 */
-	public final void setTransientIndexBuffer(TransientIndexBuffer _tib, int _firstIndex, int _numIndices) {
+	public final void setTransientIndexBuffer(TransientIndexBuffer _tib, @Unsigned int _firstIndex, @Unsigned int _numIndices) {
 		try {
 			MH_ENCODER_SET_TRANSIENT_INDEX_BUFFER.invokeExact(segment(), address(_tib), _firstIndex, _numIndices);
 		} catch (Throwable ex) {
@@ -257,7 +261,7 @@ public final class Encoder extends NativeObject {
 	 * @param _startVertex First vertex to render.
 	 * @param _numVertices Number of vertices to render.
 	 */
-	public final void setVertexBuffer(byte _stream, VertexBufferHandle _handle, int _startVertex, int _numVertices) {
+	public final void setVertexBuffer(@Unsigned byte _stream, VertexBufferHandle _handle, @Unsigned int _startVertex, @Unsigned int _numVertices) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_SET_VERTEX_BUFFER.invokeExact(segment(), _stream, _handle.allocate(arena), _startVertex, _numVertices);
@@ -275,7 +279,7 @@ public final class Encoder extends NativeObject {
 	 * @param _numVertices Number of vertices to render.
 	 * @param _layoutHandle Vertex layout for aliasing vertex buffer. If invalid handle is used, vertex layout used for creation of vertex buffer will be used.
 	 */
-	public final void setVertexBufferWithLayout(byte _stream, VertexBufferHandle _handle, int _startVertex, int _numVertices, VertexLayoutHandle _layoutHandle) {
+	public final void setVertexBufferWithLayout(@Unsigned byte _stream, VertexBufferHandle _handle, @Unsigned int _startVertex, @Unsigned int _numVertices, VertexLayoutHandle _layoutHandle) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_SET_VERTEX_BUFFER_WITH_LAYOUT.invokeExact(segment(), _stream, _handle.allocate(arena), _startVertex, _numVertices, _layoutHandle.allocate(arena));
@@ -292,7 +296,7 @@ public final class Encoder extends NativeObject {
 	 * @param _startVertex First vertex to render.
 	 * @param _numVertices Number of vertices to render.
 	 */
-	public final void setDynamicVertexBuffer(byte _stream, DynamicVertexBufferHandle _handle, int _startVertex, int _numVertices) {
+	public final void setDynamicVertexBuffer(@Unsigned byte _stream, DynamicVertexBufferHandle _handle, @Unsigned int _startVertex, @Unsigned int _numVertices) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_SET_DYNAMIC_VERTEX_BUFFER.invokeExact(segment(), _stream, _handle.allocate(arena), _startVertex, _numVertices);
@@ -310,7 +314,7 @@ public final class Encoder extends NativeObject {
 	 * @param _numVertices Number of vertices to render.
 	 * @param _layoutHandle Vertex layout for aliasing vertex buffer. If invalid handle is used, vertex layout used for creation of vertex buffer will be used.
 	 */
-	public final void setDynamicVertexBufferWithLayout(byte _stream, DynamicVertexBufferHandle _handle, int _startVertex, int _numVertices, VertexLayoutHandle _layoutHandle) {
+	public final void setDynamicVertexBufferWithLayout(@Unsigned byte _stream, DynamicVertexBufferHandle _handle, @Unsigned int _startVertex, @Unsigned int _numVertices, VertexLayoutHandle _layoutHandle) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_SET_DYNAMIC_VERTEX_BUFFER_WITH_LAYOUT.invokeExact(segment(), _stream, _handle.allocate(arena), _startVertex, _numVertices, _layoutHandle.allocate(arena));
@@ -327,7 +331,7 @@ public final class Encoder extends NativeObject {
 	 * @param _startVertex First vertex to render.
 	 * @param _numVertices Number of vertices to render.
 	 */
-	public final void setTransientVertexBuffer(byte _stream, TransientVertexBuffer _tvb, int _startVertex, int _numVertices) {
+	public final void setTransientVertexBuffer(@Unsigned byte _stream, TransientVertexBuffer _tvb, @Unsigned int _startVertex, @Unsigned int _numVertices) {
 		try {
 			MH_ENCODER_SET_TRANSIENT_VERTEX_BUFFER.invokeExact(segment(), _stream, address(_tvb), _startVertex, _numVertices);
 		} catch (Throwable ex) {
@@ -343,7 +347,7 @@ public final class Encoder extends NativeObject {
 	 * @param _numVertices Number of vertices to render.
 	 * @param _layoutHandle Vertex layout for aliasing vertex buffer. If invalid handle is used, vertex layout used for creation of vertex buffer will be used.
 	 */
-	public final void setTransientVertexBufferWithLayout(byte _stream, TransientVertexBuffer _tvb, int _startVertex, int _numVertices, VertexLayoutHandle _layoutHandle) {
+	public final void setTransientVertexBufferWithLayout(@Unsigned byte _stream, TransientVertexBuffer _tvb, @Unsigned int _startVertex, @Unsigned int _numVertices, VertexLayoutHandle _layoutHandle) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_SET_TRANSIENT_VERTEX_BUFFER_WITH_LAYOUT.invokeExact(segment(), _stream, address(_tvb), _startVertex, _numVertices, _layoutHandle.allocate(arena));
@@ -360,7 +364,7 @@ public final class Encoder extends NativeObject {
 	 * <strong>Attention:</strong> Availability depends on: {@code BGFX_CAPS_VERTEX_ID}.
 	 * @param _numVertices Number of vertices.
 	 */
-	public final void setVertexCount(int _numVertices) {
+	public final void setVertexCount(@Unsigned int _numVertices) {
 		try {
 			MH_ENCODER_SET_VERTEX_COUNT.invokeExact(segment(), _numVertices);
 		} catch (Throwable ex) {
@@ -374,7 +378,7 @@ public final class Encoder extends NativeObject {
 	 * @param _start First instance data.
 	 * @param _num Number of data instances.
 	 */
-	public final void setInstanceDataBuffer(InstanceDataBuffer _idb, int _start, int _num) {
+	public final void setInstanceDataBuffer(InstanceDataBuffer _idb, @Unsigned int _start, @Unsigned int _num) {
 		try {
 			MH_ENCODER_SET_INSTANCE_DATA_BUFFER.invokeExact(segment(), address(_idb), _start, _num);
 		} catch (Throwable ex) {
@@ -388,7 +392,7 @@ public final class Encoder extends NativeObject {
 	 * @param _startVertex First instance data.
 	 * @param _num Number of data instances.
 	 */
-	public final void setInstanceDataFromVertexBuffer(VertexBufferHandle _handle, int _startVertex, int _num) {
+	public final void setInstanceDataFromVertexBuffer(VertexBufferHandle _handle, @Unsigned int _startVertex, @Unsigned int _num) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_SET_INSTANCE_DATA_FROM_VERTEX_BUFFER.invokeExact(segment(), _handle.allocate(arena), _startVertex, _num);
@@ -404,7 +408,7 @@ public final class Encoder extends NativeObject {
 	 * @param _startVertex First instance data.
 	 * @param _num Number of data instances.
 	 */
-	public final void setInstanceDataFromDynamicVertexBuffer(DynamicVertexBufferHandle _handle, int _startVertex, int _num) {
+	public final void setInstanceDataFromDynamicVertexBuffer(DynamicVertexBufferHandle _handle, @Unsigned int _startVertex, @Unsigned int _num) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_SET_INSTANCE_DATA_FROM_DYNAMIC_VERTEX_BUFFER.invokeExact(segment(), _handle.allocate(arena), _startVertex, _num);
@@ -421,7 +425,7 @@ public final class Encoder extends NativeObject {
 	 * <strong>Attention:</strong> Availability depends on: {@code BGFX_CAPS_VERTEX_ID}.
 	 * @param _numInstances Number of instances.
 	 */
-	public final void setInstanceCount(int _numInstances) {
+	public final void setInstanceCount(@Unsigned int _numInstances) {
 		try {
 			MH_ENCODER_SET_INSTANCE_COUNT.invokeExact(segment(), _numInstances);
 		} catch (Throwable ex) {
@@ -436,7 +440,7 @@ public final class Encoder extends NativeObject {
 	 * @param _handle Texture handle.
 	 * @param _flags Texture sampling mode. Default value UINT32_MAX uses   texture sampling settings from the texture.   - {@code BGFX_SAMPLER_[U/V/W]_[MIRROR/CLAMP]} - Mirror or clamp to edge wrap     mode.   - {@code BGFX_SAMPLER_[MIN/MAG/MIP]_[POINT/ANISOTROPIC]} - Point or anisotropic     sampling.
 	 */
-	public final void setTexture(byte _stage, UniformHandle _sampler, TextureHandle _handle, int _flags) {
+	public final void setTexture(@Unsigned byte _stage, UniformHandle _sampler, TextureHandle _handle, @Unsigned int _flags) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_SET_TEXTURE.invokeExact(segment(), _stage, _sampler.allocate(arena), _handle.allocate(arena), _flags);
@@ -458,7 +462,7 @@ public final class Encoder extends NativeObject {
 	 * @param _numMips Number of mip levels.
 	 * @param _flags Texture sampling mode. Default value UINT32_MAX uses   texture sampling settings from the texture.   - {@code BGFX_SAMPLER_[U/V/W]_[MIRROR/CLAMP]} - Mirror or clamp to edge wrap     mode.   - {@code BGFX_SAMPLER_[MIN/MAG/MIP]_[POINT/ANISOTROPIC]} - Point or anisotropic     sampling.
 	 */
-	public final void setTextureView(byte _stage, UniformHandle _sampler, TextureHandle _handle, short _firstLayer, short _numLayers, byte _firstMip, byte _numMips, int _flags) {
+	public final void setTextureView(@Unsigned byte _stage, UniformHandle _sampler, TextureHandle _handle, @Unsigned short _firstLayer, @Unsigned short _numLayers, @Unsigned byte _firstMip, @Unsigned byte _numMips, @Unsigned int _flags) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_SET_TEXTURE_VIEW.invokeExact(segment(), _stage, _sampler.allocate(arena), _handle.allocate(arena), _firstLayer, _numLayers, _firstMip, _numMips, _flags);
@@ -493,7 +497,7 @@ public final class Encoder extends NativeObject {
 	 * @param _depth Depth for sorting.
 	 * @param _flags Discard or preserve states. See {@code BGFX_DISCARD_*}.
 	 */
-	public final void submit(short _id, ProgramHandle _program, int _depth, byte _flags) {
+	public final void submit(short _id, ProgramHandle _program, @Unsigned int _depth, @Unsigned byte _flags) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_SUBMIT.invokeExact(segment(), _id, _program.allocate(arena), _depth, _flags);
@@ -511,7 +515,7 @@ public final class Encoder extends NativeObject {
 	 * @param _depth Depth for sorting.
 	 * @param _flags Discard or preserve states. See {@code BGFX_DISCARD_*}.
 	 */
-	public final void submitOcclusionQuery(short _id, ProgramHandle _program, OcclusionQueryHandle _occlusionQuery, int _depth, byte _flags) {
+	public final void submitOcclusionQuery(short _id, ProgramHandle _program, OcclusionQueryHandle _occlusionQuery, @Unsigned int _depth, @Unsigned byte _flags) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_SUBMIT_OCCLUSION_QUERY.invokeExact(segment(), _id, _program.allocate(arena), _occlusionQuery.allocate(arena), _depth, _flags);
@@ -534,7 +538,7 @@ public final class Encoder extends NativeObject {
 	 * @param _depth Depth for sorting.
 	 * @param _flags Discard or preserve states. See {@code BGFX_DISCARD_*}.
 	 */
-	public final void submitIndirect(short _id, ProgramHandle _program, IndirectBufferHandle _indirectHandle, int _start, int _num, int _depth, byte _flags) {
+	public final void submitIndirect(short _id, ProgramHandle _program, IndirectBufferHandle _indirectHandle, @Unsigned int _start, @Unsigned int _num, @Unsigned int _depth, @Unsigned byte _flags) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_SUBMIT_INDIRECT.invokeExact(segment(), _id, _program.allocate(arena), _indirectHandle.allocate(arena), _start, _num, _depth, _flags);
@@ -559,7 +563,7 @@ public final class Encoder extends NativeObject {
 	 * @param _depth Depth for sorting.
 	 * @param _flags Discard or preserve states. See {@code BGFX_DISCARD_*}.
 	 */
-	public final void submitIndirectCount(short _id, ProgramHandle _program, IndirectBufferHandle _indirectHandle, int _start, IndexBufferHandle _numHandle, int _numIndex, int _numMax, int _depth, byte _flags) {
+	public final void submitIndirectCount(short _id, ProgramHandle _program, IndirectBufferHandle _indirectHandle, @Unsigned int _start, IndexBufferHandle _numHandle, @Unsigned int _numIndex, @Unsigned int _numMax, @Unsigned int _depth, @Unsigned byte _flags) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_SUBMIT_INDIRECT_COUNT.invokeExact(segment(), _id, _program.allocate(arena), _indirectHandle.allocate(arena), _start, _numHandle.allocate(arena), _numIndex, _numMax, _depth, _flags);
@@ -575,7 +579,7 @@ public final class Encoder extends NativeObject {
 	 * @param _handle Index buffer handle.
 	 * @param _access Buffer access. See {@code Access}.
 	 */
-	public final void setComputeIndexBuffer(byte _stage, IndexBufferHandle _handle, Access _access) {
+	public final void setComputeIndexBuffer(@Unsigned byte _stage, IndexBufferHandle _handle, Access _access) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_SET_COMPUTE_INDEX_BUFFER.invokeExact(segment(), _stage, _handle.allocate(arena), _access.ordinal());
@@ -591,7 +595,7 @@ public final class Encoder extends NativeObject {
 	 * @param _handle Vertex buffer handle.
 	 * @param _access Buffer access. See {@code Access}.
 	 */
-	public final void setComputeVertexBuffer(byte _stage, VertexBufferHandle _handle, Access _access) {
+	public final void setComputeVertexBuffer(@Unsigned byte _stage, VertexBufferHandle _handle, Access _access) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_SET_COMPUTE_VERTEX_BUFFER.invokeExact(segment(), _stage, _handle.allocate(arena), _access.ordinal());
@@ -607,7 +611,7 @@ public final class Encoder extends NativeObject {
 	 * @param _handle Dynamic index buffer handle.
 	 * @param _access Buffer access. See {@code Access}.
 	 */
-	public final void setComputeDynamicIndexBuffer(byte _stage, DynamicIndexBufferHandle _handle, Access _access) {
+	public final void setComputeDynamicIndexBuffer(@Unsigned byte _stage, DynamicIndexBufferHandle _handle, Access _access) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_SET_COMPUTE_DYNAMIC_INDEX_BUFFER.invokeExact(segment(), _stage, _handle.allocate(arena), _access.ordinal());
@@ -623,7 +627,7 @@ public final class Encoder extends NativeObject {
 	 * @param _handle Dynamic vertex buffer handle.
 	 * @param _access Buffer access. See {@code Access}.
 	 */
-	public final void setComputeDynamicVertexBuffer(byte _stage, DynamicVertexBufferHandle _handle, Access _access) {
+	public final void setComputeDynamicVertexBuffer(@Unsigned byte _stage, DynamicVertexBufferHandle _handle, Access _access) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_SET_COMPUTE_DYNAMIC_VERTEX_BUFFER.invokeExact(segment(), _stage, _handle.allocate(arena), _access.ordinal());
@@ -639,7 +643,7 @@ public final class Encoder extends NativeObject {
 	 * @param _handle Indirect buffer handle.
 	 * @param _access Buffer access. See {@code Access}.
 	 */
-	public final void setComputeIndirectBuffer(byte _stage, IndirectBufferHandle _handle, Access _access) {
+	public final void setComputeIndirectBuffer(@Unsigned byte _stage, IndirectBufferHandle _handle, Access _access) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_SET_COMPUTE_INDIRECT_BUFFER.invokeExact(segment(), _stage, _handle.allocate(arena), _access.ordinal());
@@ -657,7 +661,7 @@ public final class Encoder extends NativeObject {
 	 * @param _access Image access. See {@code Access}.
 	 * @param _format Texture format. See: {@code TextureFormat}.
 	 */
-	public final void setImage(byte _stage, TextureHandle _handle, byte _mip, Access _access, TextureFormat _format) {
+	public final void setImage(@Unsigned byte _stage, TextureHandle _handle, @Unsigned byte _mip, Access _access, TextureFormat _format) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_SET_IMAGE.invokeExact(segment(), _stage, _handle.allocate(arena), _mip, _access.ordinal(), _format.ordinal());
@@ -678,7 +682,7 @@ public final class Encoder extends NativeObject {
 	 * @param _access Image access. See {@code Access}.
 	 * @param _format Texture format. See: {@code TextureFormat}.
 	 */
-	public final void setImageView(byte _stage, TextureHandle _handle, short _firstLayer, short _numLayers, byte _mip, Access _access, TextureFormat _format) {
+	public final void setImageView(@Unsigned byte _stage, TextureHandle _handle, @Unsigned short _firstLayer, @Unsigned short _numLayers, @Unsigned byte _mip, Access _access, TextureFormat _format) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_SET_IMAGE_VIEW.invokeExact(segment(), _stage, _handle.allocate(arena), _firstLayer, _numLayers, _mip, _access.ordinal(), _format.ordinal());
@@ -697,7 +701,7 @@ public final class Encoder extends NativeObject {
 	 * @param _numZ Number of groups Z.
 	 * @param _flags Discard or preserve states. See {@code BGFX_DISCARD_*}.
 	 */
-	public final void dispatch(short _id, ProgramHandle _program, int _numX, int _numY, int _numZ, byte _flags) {
+	public final void dispatch(short _id, ProgramHandle _program, @Unsigned int _numX, @Unsigned int _numY, @Unsigned int _numZ, @Unsigned byte _flags) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_DISPATCH.invokeExact(segment(), _id, _program.allocate(arena), _numX, _numY, _numZ, _flags);
@@ -716,7 +720,7 @@ public final class Encoder extends NativeObject {
 	 * @param _num Number of dispatches.
 	 * @param _flags Discard or preserve states. See {@code BGFX_DISCARD_*}.
 	 */
-	public final void dispatchIndirect(short _id, ProgramHandle _program, IndirectBufferHandle _indirectHandle, int _start, int _num, byte _flags) {
+	public final void dispatchIndirect(short _id, ProgramHandle _program, IndirectBufferHandle _indirectHandle, @Unsigned int _start, @Unsigned int _num, @Unsigned byte _flags) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ENCODER_DISPATCH_INDIRECT.invokeExact(segment(), _id, _program.allocate(arena), _indirectHandle.allocate(arena), _start, _num, _flags);
@@ -730,7 +734,7 @@ public final class Encoder extends NativeObject {
 	 * Discard previously set state for draw or compute call.
 	 * @param _flags Discard or preserve states. See {@code BGFX_DISCARD_*}.
 	 */
-	public final void discard(byte _flags) {
+	public final void discard(@Unsigned byte _flags) {
 		try {
 			MH_ENCODER_DISCARD.invokeExact(segment(), _flags);
 		} catch (Throwable ex) {

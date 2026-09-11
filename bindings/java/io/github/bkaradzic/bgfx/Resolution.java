@@ -8,6 +8,7 @@
 
 package io.github.bkaradzic.bgfx;
 
+import java.lang.AutoCloseable;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
@@ -18,14 +19,17 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.nio.file.Path;
 import java.util.Objects;
-import java.lang.AutoCloseable;
 
-import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import static io.github.bkaradzic.bgfx.BGFX.*;
+import io.github.bkaradzic.bgfx.*;
+import io.github.bkaradzic.bgfx.util.FFMUtil;
+import io.github.bkaradzic.bgfx.util.NativeObject;
+import io.github.bkaradzic.bgfx.util.Unsigned;
+import static io.github.bkaradzic.bgfx.Bgfx.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 
 /**
@@ -86,11 +90,12 @@ public final class Resolution extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code formatColor} field.
+	 * Sets the native {@code formatColor} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void formatColor(TextureFormat value) {
+	public Resolution formatColor(TextureFormat value) {
 		VH_FORMATCOLOR.set(segment(), 0L, value.ordinal());
+		return this;
 	}
 
 	/**
@@ -102,106 +107,137 @@ public final class Resolution extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code formatDepthStencil} field.
+	 * Sets the native {@code formatDepthStencil} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void formatDepthStencil(TextureFormat value) {
+	public Resolution formatDepthStencil(TextureFormat value) {
 		VH_FORMATDEPTHSTENCIL.set(segment(), 0L, value.ordinal());
+		return this;
 	}
 
 	/**
 	 * Backbuffer width.
 	 * @return the field value
 	 */
-	public int width() {
-		return (int) VH_WIDTH.get(segment(), 0L);
+	public @Unsigned int width() {
+		return (@Unsigned int) VH_WIDTH.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code width} field.
+	 * Sets the native {@code width} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void width(int value) {
+	public Resolution width(@Unsigned int value) {
 		VH_WIDTH.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Backbuffer height.
 	 * @return the field value
 	 */
-	public int height() {
-		return (int) VH_HEIGHT.get(segment(), 0L);
+	public @Unsigned int height() {
+		return (@Unsigned int) VH_HEIGHT.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code height} field.
+	 * Sets the native {@code height} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void height(int value) {
+	public Resolution height(@Unsigned int value) {
 		VH_HEIGHT.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Reset parameters.
 	 * @return the field value
 	 */
-	public int reset() {
-		return (int) VH_RESET.get(segment(), 0L);
+	public @Unsigned int reset() {
+		return (@Unsigned int) VH_RESET.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code reset} field.
+	 * Sets the native {@code reset} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void reset(int value) {
+	public Resolution reset(@Unsigned int value) {
 		VH_RESET.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Number of back buffers.
 	 * @return the field value
 	 */
-	public byte numBackBuffers() {
-		return (byte) VH_NUMBACKBUFFERS.get(segment(), 0L);
+	public @Unsigned byte numBackBuffers() {
+		return (@Unsigned byte) VH_NUMBACKBUFFERS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numBackBuffers} field.
+	 * Sets the native {@code numBackBuffers} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numBackBuffers(byte value) {
+	public Resolution numBackBuffers(@Unsigned byte value) {
 		VH_NUMBACKBUFFERS.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code numBackBuffers} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Resolution numBackBuffers(int value) {
+		return numBackBuffers(NativeObject.toUnsignedByte(value));
 	}
 
 	/**
 	 * Maximum frame latency.
 	 * @return the field value
 	 */
-	public byte maxFrameLatency() {
-		return (byte) VH_MAXFRAMELATENCY.get(segment(), 0L);
+	public @Unsigned byte maxFrameLatency() {
+		return (@Unsigned byte) VH_MAXFRAMELATENCY.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxFrameLatency} field.
+	 * Sets the native {@code maxFrameLatency} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxFrameLatency(byte value) {
+	public Resolution maxFrameLatency(@Unsigned byte value) {
 		VH_MAXFRAMELATENCY.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code maxFrameLatency} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Resolution maxFrameLatency(int value) {
+		return maxFrameLatency(NativeObject.toUnsignedByte(value));
 	}
 
 	/**
 	 * Scale factor for debug text.
 	 * @return the field value
 	 */
-	public byte debugTextScale() {
-		return (byte) VH_DEBUGTEXTSCALE.get(segment(), 0L);
+	public @Unsigned byte debugTextScale() {
+		return (@Unsigned byte) VH_DEBUGTEXTSCALE.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code debugTextScale} field.
+	 * Sets the native {@code debugTextScale} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void debugTextScale(byte value) {
+	public Resolution debugTextScale(@Unsigned byte value) {
 		VH_DEBUGTEXTSCALE.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code debugTextScale} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Resolution debugTextScale(int value) {
+		return debugTextScale(NativeObject.toUnsignedByte(value));
 	}
 }

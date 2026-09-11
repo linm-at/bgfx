@@ -8,6 +8,7 @@
 
 package io.github.bkaradzic.bgfx.caps;
 
+import java.lang.AutoCloseable;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
@@ -18,16 +19,18 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.nio.file.Path;
 import java.util.Objects;
-import java.lang.AutoCloseable;
 
-import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import static io.github.bkaradzic.bgfx.BGFX.*;
-import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 import io.github.bkaradzic.bgfx.*;
+import io.github.bkaradzic.bgfx.util.FFMUtil;
+import io.github.bkaradzic.bgfx.util.NativeObject;
+import io.github.bkaradzic.bgfx.util.Unsigned;
+import static io.github.bkaradzic.bgfx.Bgfx.*;
+import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 
 /**
  * Renderer runtime limits.
@@ -145,432 +148,459 @@ public final class Limits extends NativeObject {
 	 * Maximum number of draw calls.
 	 * @return the field value
 	 */
-	public int maxDrawCalls() {
-		return (int) VH_MAXDRAWCALLS.get(segment(), 0L);
+	public @Unsigned int maxDrawCalls() {
+		return (@Unsigned int) VH_MAXDRAWCALLS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxDrawCalls} field.
+	 * Sets the native {@code maxDrawCalls} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxDrawCalls(int value) {
+	public Limits maxDrawCalls(@Unsigned int value) {
 		VH_MAXDRAWCALLS.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum number of blit calls.
 	 * @return the field value
 	 */
-	public int maxBlits() {
-		return (int) VH_MAXBLITS.get(segment(), 0L);
+	public @Unsigned int maxBlits() {
+		return (@Unsigned int) VH_MAXBLITS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxBlits} field.
+	 * Sets the native {@code maxBlits} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxBlits(int value) {
+	public Limits maxBlits(@Unsigned int value) {
 		VH_MAXBLITS.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum texture size.
 	 * @return the field value
 	 */
-	public int maxTextureSize() {
-		return (int) VH_MAXTEXTURESIZE.get(segment(), 0L);
+	public @Unsigned int maxTextureSize() {
+		return (@Unsigned int) VH_MAXTEXTURESIZE.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxTextureSize} field.
+	 * Sets the native {@code maxTextureSize} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxTextureSize(int value) {
+	public Limits maxTextureSize(@Unsigned int value) {
 		VH_MAXTEXTURESIZE.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum texture layers.
 	 * @return the field value
 	 */
-	public int maxTextureLayers() {
-		return (int) VH_MAXTEXTURELAYERS.get(segment(), 0L);
+	public @Unsigned int maxTextureLayers() {
+		return (@Unsigned int) VH_MAXTEXTURELAYERS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxTextureLayers} field.
+	 * Sets the native {@code maxTextureLayers} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxTextureLayers(int value) {
+	public Limits maxTextureLayers(@Unsigned int value) {
 		VH_MAXTEXTURELAYERS.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum number of views.
 	 * @return the field value
 	 */
-	public int maxViews() {
-		return (int) VH_MAXVIEWS.get(segment(), 0L);
+	public @Unsigned int maxViews() {
+		return (@Unsigned int) VH_MAXVIEWS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxViews} field.
+	 * Sets the native {@code maxViews} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxViews(int value) {
+	public Limits maxViews(@Unsigned int value) {
 		VH_MAXVIEWS.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum number of frame buffer handles.
 	 * @return the field value
 	 */
-	public int maxFrameBuffers() {
-		return (int) VH_MAXFRAMEBUFFERS.get(segment(), 0L);
+	public @Unsigned int maxFrameBuffers() {
+		return (@Unsigned int) VH_MAXFRAMEBUFFERS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxFrameBuffers} field.
+	 * Sets the native {@code maxFrameBuffers} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxFrameBuffers(int value) {
+	public Limits maxFrameBuffers(@Unsigned int value) {
 		VH_MAXFRAMEBUFFERS.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum number of frame buffer attachments.
 	 * @return the field value
 	 */
-	public int maxFBAttachments() {
-		return (int) VH_MAXFBATTACHMENTS.get(segment(), 0L);
+	public @Unsigned int maxFBAttachments() {
+		return (@Unsigned int) VH_MAXFBATTACHMENTS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxFBAttachments} field.
+	 * Sets the native {@code maxFBAttachments} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxFBAttachments(int value) {
+	public Limits maxFBAttachments(@Unsigned int value) {
 		VH_MAXFBATTACHMENTS.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum number of program handles.
 	 * @return the field value
 	 */
-	public int maxPrograms() {
-		return (int) VH_MAXPROGRAMS.get(segment(), 0L);
+	public @Unsigned int maxPrograms() {
+		return (@Unsigned int) VH_MAXPROGRAMS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxPrograms} field.
+	 * Sets the native {@code maxPrograms} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxPrograms(int value) {
+	public Limits maxPrograms(@Unsigned int value) {
 		VH_MAXPROGRAMS.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum number of shader handles.
 	 * @return the field value
 	 */
-	public int maxShaders() {
-		return (int) VH_MAXSHADERS.get(segment(), 0L);
+	public @Unsigned int maxShaders() {
+		return (@Unsigned int) VH_MAXSHADERS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxShaders} field.
+	 * Sets the native {@code maxShaders} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxShaders(int value) {
+	public Limits maxShaders(@Unsigned int value) {
 		VH_MAXSHADERS.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum number of texture handles.
 	 * @return the field value
 	 */
-	public int maxTextures() {
-		return (int) VH_MAXTEXTURES.get(segment(), 0L);
+	public @Unsigned int maxTextures() {
+		return (@Unsigned int) VH_MAXTEXTURES.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxTextures} field.
+	 * Sets the native {@code maxTextures} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxTextures(int value) {
+	public Limits maxTextures(@Unsigned int value) {
 		VH_MAXTEXTURES.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum number of texture samplers.
 	 * @return the field value
 	 */
-	public int maxTextureSamplers() {
-		return (int) VH_MAXTEXTURESAMPLERS.get(segment(), 0L);
+	public @Unsigned int maxTextureSamplers() {
+		return (@Unsigned int) VH_MAXTEXTURESAMPLERS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxTextureSamplers} field.
+	 * Sets the native {@code maxTextureSamplers} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxTextureSamplers(int value) {
+	public Limits maxTextureSamplers(@Unsigned int value) {
 		VH_MAXTEXTURESAMPLERS.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum number of compute bindings.
 	 * @return the field value
 	 */
-	public int maxComputeBindings() {
-		return (int) VH_MAXCOMPUTEBINDINGS.get(segment(), 0L);
+	public @Unsigned int maxComputeBindings() {
+		return (@Unsigned int) VH_MAXCOMPUTEBINDINGS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxComputeBindings} field.
+	 * Sets the native {@code maxComputeBindings} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxComputeBindings(int value) {
+	public Limits maxComputeBindings(@Unsigned int value) {
 		VH_MAXCOMPUTEBINDINGS.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum number of vertex format layouts.
 	 * @return the field value
 	 */
-	public int maxVertexLayouts() {
-		return (int) VH_MAXVERTEXLAYOUTS.get(segment(), 0L);
+	public @Unsigned int maxVertexLayouts() {
+		return (@Unsigned int) VH_MAXVERTEXLAYOUTS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxVertexLayouts} field.
+	 * Sets the native {@code maxVertexLayouts} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxVertexLayouts(int value) {
+	public Limits maxVertexLayouts(@Unsigned int value) {
 		VH_MAXVERTEXLAYOUTS.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum number of vertex streams.
 	 * @return the field value
 	 */
-	public int maxVertexStreams() {
-		return (int) VH_MAXVERTEXSTREAMS.get(segment(), 0L);
+	public @Unsigned int maxVertexStreams() {
+		return (@Unsigned int) VH_MAXVERTEXSTREAMS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxVertexStreams} field.
+	 * Sets the native {@code maxVertexStreams} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxVertexStreams(int value) {
+	public Limits maxVertexStreams(@Unsigned int value) {
 		VH_MAXVERTEXSTREAMS.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum number of vertex attributes.
 	 * @return the field value
 	 */
-	public int maxVertexAttributes() {
-		return (int) VH_MAXVERTEXATTRIBUTES.get(segment(), 0L);
+	public @Unsigned int maxVertexAttributes() {
+		return (@Unsigned int) VH_MAXVERTEXATTRIBUTES.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxVertexAttributes} field.
+	 * Sets the native {@code maxVertexAttributes} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxVertexAttributes(int value) {
+	public Limits maxVertexAttributes(@Unsigned int value) {
 		VH_MAXVERTEXATTRIBUTES.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum number of instance data slots.
 	 * @return the field value
 	 */
-	public int maxInstanceData() {
-		return (int) VH_MAXINSTANCEDATA.get(segment(), 0L);
+	public @Unsigned int maxInstanceData() {
+		return (@Unsigned int) VH_MAXINSTANCEDATA.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxInstanceData} field.
+	 * Sets the native {@code maxInstanceData} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxInstanceData(int value) {
+	public Limits maxInstanceData(@Unsigned int value) {
 		VH_MAXINSTANCEDATA.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum number of index buffer handles.
 	 * @return the field value
 	 */
-	public int maxIndexBuffers() {
-		return (int) VH_MAXINDEXBUFFERS.get(segment(), 0L);
+	public @Unsigned int maxIndexBuffers() {
+		return (@Unsigned int) VH_MAXINDEXBUFFERS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxIndexBuffers} field.
+	 * Sets the native {@code maxIndexBuffers} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxIndexBuffers(int value) {
+	public Limits maxIndexBuffers(@Unsigned int value) {
 		VH_MAXINDEXBUFFERS.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum number of vertex buffer handles.
 	 * @return the field value
 	 */
-	public int maxVertexBuffers() {
-		return (int) VH_MAXVERTEXBUFFERS.get(segment(), 0L);
+	public @Unsigned int maxVertexBuffers() {
+		return (@Unsigned int) VH_MAXVERTEXBUFFERS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxVertexBuffers} field.
+	 * Sets the native {@code maxVertexBuffers} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxVertexBuffers(int value) {
+	public Limits maxVertexBuffers(@Unsigned int value) {
 		VH_MAXVERTEXBUFFERS.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum number of dynamic index buffer handles.
 	 * @return the field value
 	 */
-	public int maxDynamicIndexBuffers() {
-		return (int) VH_MAXDYNAMICINDEXBUFFERS.get(segment(), 0L);
+	public @Unsigned int maxDynamicIndexBuffers() {
+		return (@Unsigned int) VH_MAXDYNAMICINDEXBUFFERS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxDynamicIndexBuffers} field.
+	 * Sets the native {@code maxDynamicIndexBuffers} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxDynamicIndexBuffers(int value) {
+	public Limits maxDynamicIndexBuffers(@Unsigned int value) {
 		VH_MAXDYNAMICINDEXBUFFERS.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum number of dynamic vertex buffer handles.
 	 * @return the field value
 	 */
-	public int maxDynamicVertexBuffers() {
-		return (int) VH_MAXDYNAMICVERTEXBUFFERS.get(segment(), 0L);
+	public @Unsigned int maxDynamicVertexBuffers() {
+		return (@Unsigned int) VH_MAXDYNAMICVERTEXBUFFERS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxDynamicVertexBuffers} field.
+	 * Sets the native {@code maxDynamicVertexBuffers} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxDynamicVertexBuffers(int value) {
+	public Limits maxDynamicVertexBuffers(@Unsigned int value) {
 		VH_MAXDYNAMICVERTEXBUFFERS.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum number of uniform handles.
 	 * @return the field value
 	 */
-	public int maxUniforms() {
-		return (int) VH_MAXUNIFORMS.get(segment(), 0L);
+	public @Unsigned int maxUniforms() {
+		return (@Unsigned int) VH_MAXUNIFORMS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxUniforms} field.
+	 * Sets the native {@code maxUniforms} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxUniforms(int value) {
+	public Limits maxUniforms(@Unsigned int value) {
 		VH_MAXUNIFORMS.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum number of occlusion query handles.
 	 * @return the field value
 	 */
-	public int maxOcclusionQueries() {
-		return (int) VH_MAXOCCLUSIONQUERIES.get(segment(), 0L);
+	public @Unsigned int maxOcclusionQueries() {
+		return (@Unsigned int) VH_MAXOCCLUSIONQUERIES.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxOcclusionQueries} field.
+	 * Sets the native {@code maxOcclusionQueries} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxOcclusionQueries(int value) {
+	public Limits maxOcclusionQueries(@Unsigned int value) {
 		VH_MAXOCCLUSIONQUERIES.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum number of encoder threads.
 	 * @return the field value
 	 */
-	public int maxEncoders() {
-		return (int) VH_MAXENCODERS.get(segment(), 0L);
+	public @Unsigned int maxEncoders() {
+		return (@Unsigned int) VH_MAXENCODERS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxEncoders} field.
+	 * Sets the native {@code maxEncoders} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxEncoders(int value) {
+	public Limits maxEncoders(@Unsigned int value) {
 		VH_MAXENCODERS.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Minimum resource command buffer size.
 	 * @return the field value
 	 */
-	public int minResourceCbSize() {
-		return (int) VH_MINRESOURCECBSIZE.get(segment(), 0L);
+	public @Unsigned int minResourceCbSize() {
+		return (@Unsigned int) VH_MINRESOURCECBSIZE.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code minResourceCbSize} field.
+	 * Sets the native {@code minResourceCbSize} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void minResourceCbSize(int value) {
+	public Limits minResourceCbSize(@Unsigned int value) {
 		VH_MINRESOURCECBSIZE.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum transient vertex buffer size.
 	 * @return the field value
 	 */
-	public int maxTransientVbSize() {
-		return (int) VH_MAXTRANSIENTVBSIZE.get(segment(), 0L);
+	public @Unsigned int maxTransientVbSize() {
+		return (@Unsigned int) VH_MAXTRANSIENTVBSIZE.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxTransientVbSize} field.
+	 * Sets the native {@code maxTransientVbSize} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxTransientVbSize(int value) {
+	public Limits maxTransientVbSize(@Unsigned int value) {
 		VH_MAXTRANSIENTVBSIZE.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum transient index buffer size.
 	 * @return the field value
 	 */
-	public int maxTransientIbSize() {
-		return (int) VH_MAXTRANSIENTIBSIZE.get(segment(), 0L);
+	public @Unsigned int maxTransientIbSize() {
+		return (@Unsigned int) VH_MAXTRANSIENTIBSIZE.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxTransientIbSize} field.
+	 * Sets the native {@code maxTransientIbSize} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxTransientIbSize(int value) {
+	public Limits maxTransientIbSize(@Unsigned int value) {
 		VH_MAXTRANSIENTIBSIZE.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Mimimum uniform buffer size.
 	 * @return the field value
 	 */
-	public int minUniformBufferSize() {
-		return (int) VH_MINUNIFORMBUFFERSIZE.get(segment(), 0L);
+	public @Unsigned int minUniformBufferSize() {
+		return (@Unsigned int) VH_MINUNIFORMBUFFERSIZE.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code minUniformBufferSize} field.
+	 * Sets the native {@code minUniformBufferSize} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void minUniformBufferSize(int value) {
+	public Limits minUniformBufferSize(@Unsigned int value) {
 		VH_MINUNIFORMBUFFERSIZE.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -578,16 +608,17 @@ public final class Limits extends NativeObject {
 	 * natively. Any other {@code BufferRegion.rowPitch} is repacked internally.
 	 * @return the field value
 	 */
-	public int blitRowPitchAlign() {
-		return (int) VH_BLITROWPITCHALIGN.get(segment(), 0L);
+	public @Unsigned int blitRowPitchAlign() {
+		return (@Unsigned int) VH_BLITROWPITCHALIGN.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code blitRowPitchAlign} field.
+	 * Sets the native {@code blitRowPitchAlign} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void blitRowPitchAlign(int value) {
+	public Limits blitRowPitchAlign(@Unsigned int value) {
 		VH_BLITROWPITCHALIGN.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -595,15 +626,16 @@ public final class Limits extends NativeObject {
 	 * natively. Any other {@code BufferRegion.offset} is repacked internally.
 	 * @return the field value
 	 */
-	public int blitOffsetAlign() {
-		return (int) VH_BLITOFFSETALIGN.get(segment(), 0L);
+	public @Unsigned int blitOffsetAlign() {
+		return (@Unsigned int) VH_BLITOFFSETALIGN.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code blitOffsetAlign} field.
+	 * Sets the native {@code blitOffsetAlign} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void blitOffsetAlign(int value) {
+	public Limits blitOffsetAlign(@Unsigned int value) {
 		VH_BLITOFFSETALIGN.set(segment(), 0L, value);
+		return this;
 	}
 }

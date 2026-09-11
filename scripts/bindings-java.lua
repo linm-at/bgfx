@@ -3,6 +3,33 @@ local idl = codegen.idl "bgfx.idl"
 
 local java_package = "io.github.bkaradzic.bgfx"
 
+local java_imports = [[
+
+import java.lang.AutoCloseable;
+import java.lang.foreign.Arena;
+import java.lang.foreign.FunctionDescriptor;
+import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.SegmentAllocator;
+import java.lang.foreign.StructLayout;
+import java.lang.foreign.ValueLayout;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodType;
+import java.lang.invoke.VarHandle;
+import java.nio.file.Path;
+import java.util.Objects;
+
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
+
+import ]] .. java_package .. [[.*;
+import ]] .. java_package .. [[.util.FFMUtil;
+import ]] .. java_package .. [[.util.NativeObject;
+import ]] .. java_package .. [[.util.Unsigned;
+import static ]] .. java_package .. [[.Bgfx.*;
+import static ]] .. java_package .. [[.util.FFMUtil.*;
+]]
+
 local java_header = [[
 // Copyright 2011-2026 Branimir Karadzic. All rights reserved.
 // License: https://github.com/bkaradzic/bgfx/blob/master/LICENSE
@@ -16,20 +43,7 @@ local java_header = [[
 local java_template = java_header .. [[
 
 package ]] .. java_package .. [[;
-
-import java.lang.foreign.Arena;
-import java.lang.foreign.FunctionDescriptor;
-import java.lang.foreign.MemorySegment;
-import java.lang.foreign.SegmentAllocator;
-import java.lang.foreign.ValueLayout;
-import java.lang.invoke.MethodHandle;
-import java.nio.file.Path;
-
-import ]] .. java_package .. [[.util.FFMUtil;
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
-
-import static ]] .. java_package .. [[.util.FFMUtil.*;
+]] .. java_imports .. [[
 
 
 /**
@@ -40,9 +54,9 @@ import static ]] .. java_package .. [[.util.FFMUtil.*;
  */
 @NullMarked
 @SuppressWarnings("restricted")
-public final class BGFX {
+public final class Bgfx {
 
-	private BGFX() {
+	private Bgfx() {
 	}
 
 $native
@@ -93,21 +107,21 @@ local function gisub(s, pat, repl, n)
 end
 
 local primitive_types = {
-	bool = { java = "boolean", layout = "ValueLayout.JAVA_BOOLEAN" },
-	char = { java = "byte", layout = "ValueLayout.JAVA_BYTE" },
-	float = { java = "float", layout = "ValueLayout.JAVA_FLOAT" },
-	int8_t = { java = "byte", layout = "ValueLayout.JAVA_BYTE" },
-	int16_t = { java = "short", layout = "ValueLayout.JAVA_SHORT" },
-	int32_t = { java = "int", layout = "ValueLayout.JAVA_INT" },
-	int64_t = { java = "long", layout = "ValueLayout.JAVA_LONG" },
-	uint8_t = { java = "byte", layout = "ValueLayout.JAVA_BYTE" },
-	uint16_t = { java = "short", layout = "ValueLayout.JAVA_SHORT" },
-	uint32_t = { java = "int", layout = "ValueLayout.JAVA_INT" },
-	uint64_t = { java = "long", layout = "ValueLayout.JAVA_LONG" },
-	uintptr_t = { java = "long", layout = "C_UINTPTR_T", uintptr = true },
-	bgfx_view_id_t = { java = "short", layout = "ValueLayout.JAVA_SHORT" },
-	void = { java = "void" },
-	va_list = { java = "MemorySegment", layout = "ValueLayout.ADDRESS", opaque = true },
+bool           = { java = "boolean",         plain = "boolean", layout = "ValueLayout.JAVA_BOOLEAN"                     },
+char           = { java = "byte",            plain = "byte",    layout = "ValueLayout.JAVA_BYTE"                        },
+float          = { java = "float",           plain = "float",   layout = "ValueLayout.JAVA_FLOAT"                       },
+int8_t         = { java = "byte",            plain = "byte",    layout = "ValueLayout.JAVA_BYTE"                        },
+int16_t        = { java = "short",           plain = "short",   layout = "ValueLayout.JAVA_SHORT"                       },
+int32_t        = { java = "int",             plain = "int",     layout = "ValueLayout.JAVA_INT"                         },
+int64_t        = { java = "long",            plain = "long",    layout = "ValueLayout.JAVA_LONG",                       },
+uint8_t        = { java = "@Unsigned byte",  plain = "byte",    layout = "ValueLayout.JAVA_BYTE",       unsigned = true },
+uint16_t       = { java = "@Unsigned short", plain = "short",   layout = "ValueLayout.JAVA_SHORT",      unsigned = true },
+uint32_t       = { java = "@Unsigned int",   plain = "int",     layout = "ValueLayout.JAVA_INT",        unsigned = true },
+uint64_t       = { java = "@Unsigned long",  plain = "long",    layout = "ValueLayout.JAVA_LONG",       unsigned = true },
+uintptr_t      = { java = "@Unsigned long",  plain = "long",    layout = "C_UINTPTR_T", uintptr = true, unsigned = true },
+bgfx_view_id_t = { java = "short",           plain = "short",   layout = "ValueLayout.JAVA_SHORT"                       },
+void           = { java = "void",            plain = "void"                                                             },
+va_list        = { java = "MemorySegment",   plain = "MemorySegment", layout = "ValueLayout.ADDRESS", opaque = true     },
 }
 
 local ctype_info = {}
@@ -665,7 +679,7 @@ local function emit_handle(typ, root_indent)
 	emit_javadoc({ "Destroys this native handle." }, body_indent)
 	yield(body_indent .. "@Override")
 	yield(body_indent .. "public void close() {")
-	yield(body_indent .. "\tBGFX.destroy" .. typ.name:gsub("Handle$", "") .. "(this);")
+	yield(body_indent .. "\tBgfx.destroy" .. typ.name:gsub("Handle$", "") .. "(this);")
 	yield(body_indent .. "}")
 	yield(root_indent .. "}")
 end
@@ -750,7 +764,7 @@ local function emit_funcptr(typ, root_indent)
 	yield(root_indent .. "}")
 end
 
-local function emit_member_accessor(member, body_indent)
+local function emit_member_accessor(typ, member, body_indent)
 	local details = type_details(member, false)
 	local member_type = java_type(member, "member")
 	local field_handle = (member.array
@@ -770,6 +784,7 @@ local function emit_member_accessor(member, body_indent)
 
 	local getter
 	local setter
+	local primitive = details.primitive
 	if details.pointers > 0 then
 		if details.pointers == 1 and details.info and details.info.kind == "struct" then
 			getter = "new " .. details.info.java .. "((MemorySegment) " .. field_handle .. ".get(segment(), 0L))"
@@ -797,7 +812,7 @@ local function emit_member_accessor(member, body_indent)
 			setter = field_handle .. ".set(segment(), 0L, address(value))"
 		end
 	else
-		local primitive = assert(details.primitive, "Unsupported member type: " .. member.ctype)
+		assert(primitive, "Unsupported member type: " .. member.ctype)
 		assert(not primitive.uintptr, "uintptr_t struct fields require a carrier-specific accessor")
 		getter = "(" .. primitive.java .. ") " .. field_handle .. ".get(segment(), 0L)"
 		setter = field_handle .. ".set(segment(), 0L, value)"
@@ -808,11 +823,28 @@ local function emit_member_accessor(member, body_indent)
 	yield(body_indent .. "\treturn " .. getter .. ";")
 	yield(body_indent .. "}")
 	yield("")
-	emit_javadoc({ "Sets the native {@code " .. member.name .. "} field." }, body_indent,
+	local setter_javadoc = { "Sets the native {@code " .. member.name .. "} field and returns {@code this}." };
+	emit_javadoc(setter_javadoc, body_indent,
 		{ { name = "value", text = "the new field value" } })
-	yield(body_indent .. "public void " .. member.name .. "(" .. member_type .. " value) {")
+	yield(body_indent .. "public " .. typ.name .. " " .. member.name .. "(" .. member_type .. " value) {")
 	yield(body_indent .. "\t" .. setter .. ";")
+	yield(body_indent .. "\treturn this;")
 	yield(body_indent .. "}")
+
+	if primitive and (primitive.plain == "byte" or primitive.plain == "short") then
+		yield("")
+		emit_javadoc(setter_javadoc, body_indent,
+			{ { name = "value", text = "the new field value" } })
+		yield(body_indent .. "public " .. typ.name .. " " .. member.name .. "(int value) {")
+
+		local suffix = primitive.plain:sub(1, 1):upper() .. primitive.plain:sub(2)
+		local fmt = primitive.unsigned and
+			("NativeObject.toUnsigned" .. suffix .. "(%s)") or
+			("(" .. primitive.java .. ")%s")
+
+		yield(body_indent .. "\treturn " .. member.name .. "(" .. string.format(fmt, "value") .. ");")
+		yield(body_indent .. "}")
+	end
 end
 
 local function emit_struct_body(typ, funcs, body_indent)
@@ -856,7 +888,7 @@ local function emit_struct_body(typ, funcs, body_indent)
 
 	for _, member in ipairs(typ.struct) do
 		yield("")
-		emit_member_accessor(member, body_indent)
+		emit_member_accessor(typ, member, body_indent)
 	end
 	if funcs then
 		for _, func in ipairs(funcs) do
@@ -1243,32 +1275,7 @@ local function type_source(typ, body)
 	if typ.namespace then
 		package_name = package_name .. "." .. typ.namespace:lower()
 	end
-	local imports = [[
-
-import java.lang.foreign.Arena;
-import java.lang.foreign.FunctionDescriptor;
-import java.lang.foreign.MemoryLayout;
-import java.lang.foreign.MemorySegment;
-import java.lang.foreign.SegmentAllocator;
-import java.lang.foreign.StructLayout;
-import java.lang.foreign.ValueLayout;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodType;
-import java.lang.invoke.VarHandle;
-import java.util.Objects;
-import java.lang.AutoCloseable;
-
-import ]] .. java_package .. [[.util.NativeObject;
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
-
-import static ]] .. java_package .. [[.BGFX.*;
-import static ]] .. java_package .. [[.util.FFMUtil.*;
-]]
-	if typ.namespace then
-		imports = imports .. "import " .. java_package .. ".*;\n"
-	end
-	return java_header .. "\npackage " .. package_name .. ";\n" .. imports .. "\n" .. body .. "\n"
+	return java_header .. "\npackage " .. package_name .. ";\n" .. java_imports .. "\n" .. body .. "\n"
 end
 
 function gen.files()
@@ -1289,11 +1296,14 @@ function gen.files()
 	end
 
 	local sections = { funcs = generate_function_section(), native = native_section() }
-	files["BGFX.java"] = (java_template:gsub("$(%l+)", sections))
+	files["Bgfx.java"] = (java_template:gsub("$(%l+)", sections))
 	return files
 end
 
 function gen.gen()
+	if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
+    	require("lldebugger").start()
+	end
 	return gen.files()
 end
 

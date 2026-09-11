@@ -8,6 +8,7 @@
 
 package io.github.bkaradzic.bgfx;
 
+import java.lang.AutoCloseable;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
@@ -18,14 +19,17 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.nio.file.Path;
 import java.util.Objects;
-import java.lang.AutoCloseable;
 
-import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import static io.github.bkaradzic.bgfx.BGFX.*;
+import io.github.bkaradzic.bgfx.*;
+import io.github.bkaradzic.bgfx.util.FFMUtil;
+import io.github.bkaradzic.bgfx.util.NativeObject;
+import io.github.bkaradzic.bgfx.util.Unsigned;
+import static io.github.bkaradzic.bgfx.Bgfx.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 
 /**
@@ -91,11 +95,20 @@ public final class ViewStats extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code view} field.
+	 * Sets the native {@code view} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void view(short value) {
+	public ViewStats view(short value) {
 		VH_VIEW.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code view} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public ViewStats view(int value) {
+		return view((short)value);
 	}
 
 	/**
@@ -107,11 +120,12 @@ public final class ViewStats extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code cpuTimeBegin} field.
+	 * Sets the native {@code cpuTimeBegin} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void cpuTimeBegin(long value) {
+	public ViewStats cpuTimeBegin(long value) {
 		VH_CPUTIMEBEGIN.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -123,11 +137,12 @@ public final class ViewStats extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code cpuTimeEnd} field.
+	 * Sets the native {@code cpuTimeEnd} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void cpuTimeEnd(long value) {
+	public ViewStats cpuTimeEnd(long value) {
 		VH_CPUTIMEEND.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -139,11 +154,12 @@ public final class ViewStats extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code gpuTimeBegin} field.
+	 * Sets the native {@code gpuTimeBegin} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void gpuTimeBegin(long value) {
+	public ViewStats gpuTimeBegin(long value) {
 		VH_GPUTIMEBEGIN.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -155,26 +171,28 @@ public final class ViewStats extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code gpuTimeEnd} field.
+	 * Sets the native {@code gpuTimeEnd} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void gpuTimeEnd(long value) {
+	public ViewStats gpuTimeEnd(long value) {
 		VH_GPUTIMEEND.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Frame which generated gpuTimeBegin, gpuTimeEnd.
 	 * @return the field value
 	 */
-	public int gpuFrameNum() {
-		return (int) VH_GPUFRAMENUM.get(segment(), 0L);
+	public @Unsigned int gpuFrameNum() {
+		return (@Unsigned int) VH_GPUFRAMENUM.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code gpuFrameNum} field.
+	 * Sets the native {@code gpuFrameNum} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void gpuFrameNum(int value) {
+	public ViewStats gpuFrameNum(@Unsigned int value) {
 		VH_GPUFRAMENUM.set(segment(), 0L, value);
+		return this;
 	}
 }

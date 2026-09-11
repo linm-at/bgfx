@@ -8,6 +8,7 @@
 
 package io.github.bkaradzic.bgfx;
 
+import java.lang.AutoCloseable;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
@@ -18,14 +19,17 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.nio.file.Path;
 import java.util.Objects;
-import java.lang.AutoCloseable;
 
-import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import static io.github.bkaradzic.bgfx.BGFX.*;
+import io.github.bkaradzic.bgfx.*;
+import io.github.bkaradzic.bgfx.util.FFMUtil;
+import io.github.bkaradzic.bgfx.util.NativeObject;
+import io.github.bkaradzic.bgfx.util.Unsigned;
+import static io.github.bkaradzic.bgfx.Bgfx.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 
 /**
@@ -80,11 +84,12 @@ public final class Attachment extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code access} field.
+	 * Sets the native {@code access} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void access(Access value) {
+	public Attachment access(Access value) {
 		VH_ACCESS.set(segment(), 0L, value.ordinal());
+		return this;
 	}
 
 	/**
@@ -96,75 +101,112 @@ public final class Attachment extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code handle} field.
+	 * Sets the native {@code handle} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void handle(TextureHandle value) {
+	public Attachment handle(TextureHandle value) {
 		value.write(slice(MH_HANDLE, segment()));
+		return this;
 	}
 
 	/**
 	 * Mip level.
 	 * @return the field value
 	 */
-	public short mip() {
-		return (short) VH_MIP.get(segment(), 0L);
+	public @Unsigned short mip() {
+		return (@Unsigned short) VH_MIP.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code mip} field.
+	 * Sets the native {@code mip} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void mip(short value) {
+	public Attachment mip(@Unsigned short value) {
 		VH_MIP.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code mip} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Attachment mip(int value) {
+		return mip(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Cubemap side or depth layer/slice to use.
 	 * @return the field value
 	 */
-	public short layer() {
-		return (short) VH_LAYER.get(segment(), 0L);
+	public @Unsigned short layer() {
+		return (@Unsigned short) VH_LAYER.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code layer} field.
+	 * Sets the native {@code layer} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void layer(short value) {
+	public Attachment layer(@Unsigned short value) {
 		VH_LAYER.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code layer} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Attachment layer(int value) {
+		return layer(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Number of texture layer/slice(s) in array to use.
 	 * @return the field value
 	 */
-	public short numLayers() {
-		return (short) VH_NUMLAYERS.get(segment(), 0L);
+	public @Unsigned short numLayers() {
+		return (@Unsigned short) VH_NUMLAYERS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numLayers} field.
+	 * Sets the native {@code numLayers} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numLayers(short value) {
+	public Attachment numLayers(@Unsigned short value) {
 		VH_NUMLAYERS.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code numLayers} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Attachment numLayers(int value) {
+		return numLayers(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Resolve flags. See: {@code BGFX_RESOLVE_*}
 	 * @return the field value
 	 */
-	public byte resolve() {
-		return (byte) VH_RESOLVE.get(segment(), 0L);
+	public @Unsigned byte resolve() {
+		return (@Unsigned byte) VH_RESOLVE.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code resolve} field.
+	 * Sets the native {@code resolve} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void resolve(byte value) {
+	public Attachment resolve(@Unsigned byte value) {
 		VH_RESOLVE.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code resolve} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Attachment resolve(int value) {
+		return resolve(NativeObject.toUnsignedByte(value));
 	}
 
 	/**
@@ -176,7 +218,7 @@ public final class Attachment extends NativeObject {
 	 * @param _mip Mip level.
 	 * @param _resolve Resolve flags. See: {@code BGFX_RESOLVE_*}
 	 */
-	public final void init(TextureHandle _handle, Access _access, short _layer, short _numLayers, short _mip, byte _resolve) {
+	public final void init(TextureHandle _handle, Access _access, @Unsigned short _layer, @Unsigned short _numLayers, @Unsigned short _mip, @Unsigned byte _resolve) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_ATTACHMENT_INIT.invokeExact(segment(), _handle.allocate(arena), _access.ordinal(), _layer, _numLayers, _mip, _resolve);

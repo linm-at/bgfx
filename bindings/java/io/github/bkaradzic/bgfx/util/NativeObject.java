@@ -75,4 +75,22 @@ public abstract class NativeObject {
 	public String toString() {
 		return segment().toString();
 	}
+
+	//
+	// Helper methods
+	//
+
+	protected static @Unsigned short toUnsignedShort(int value) {
+		if ((value & ~0xffff) != 0) {
+			throw new IllegalArgumentException("value out of range: " + value);
+		}
+		return (short) value;
+	}
+
+	protected static @Unsigned byte toUnsignedByte(int value) {
+		if ((value & ~0xff) != 0) {
+			throw new IllegalArgumentException("value out of range: " + value);
+		}
+		return (byte) value;
+	}
 }

@@ -8,6 +8,7 @@
 
 package io.github.bkaradzic.bgfx.init;
 
+import java.lang.AutoCloseable;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
@@ -18,16 +19,18 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.nio.file.Path;
 import java.util.Objects;
-import java.lang.AutoCloseable;
 
-import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import static io.github.bkaradzic.bgfx.BGFX.*;
-import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 import io.github.bkaradzic.bgfx.*;
+import io.github.bkaradzic.bgfx.util.FFMUtil;
+import io.github.bkaradzic.bgfx.util.NativeObject;
+import io.github.bkaradzic.bgfx.util.Unsigned;
+import static io.github.bkaradzic.bgfx.Bgfx.*;
+import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 
 /**
  * Configurable runtime limits parameters.
@@ -79,16 +82,25 @@ public final class Limits extends NativeObject {
 	 * Maximum number of encoder threads.
 	 * @return the field value
 	 */
-	public short maxEncoders() {
-		return (short) VH_MAXENCODERS.get(segment(), 0L);
+	public @Unsigned short maxEncoders() {
+		return (@Unsigned short) VH_MAXENCODERS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxEncoders} field.
+	 * Sets the native {@code maxEncoders} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxEncoders(short value) {
+	public Limits maxEncoders(@Unsigned short value) {
 		VH_MAXENCODERS.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code maxEncoders} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Limits maxEncoders(int value) {
+		return maxEncoders(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
@@ -103,16 +115,17 @@ public final class Limits extends NativeObject {
 	 * {@code Stats.numDrawCallsPeak} to size it.
 	 * @return the field value
 	 */
-	public int numDrawCalls() {
-		return (int) VH_NUMDRAWCALLS.get(segment(), 0L);
+	public @Unsigned int numDrawCalls() {
+		return (@Unsigned int) VH_NUMDRAWCALLS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numDrawCalls} field.
+	 * Sets the native {@code numDrawCalls} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numDrawCalls(int value) {
+	public Limits numDrawCalls(@Unsigned int value) {
 		VH_NUMDRAWCALLS.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -123,79 +136,84 @@ public final class Limits extends NativeObject {
 	 * resized at all, and this only releases unused uniform buffer space.
 	 * @return the field value
 	 */
-	public int numDrawCallPeakFrames() {
-		return (int) VH_NUMDRAWCALLPEAKFRAMES.get(segment(), 0L);
+	public @Unsigned int numDrawCallPeakFrames() {
+		return (@Unsigned int) VH_NUMDRAWCALLPEAKFRAMES.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numDrawCallPeakFrames} field.
+	 * Sets the native {@code numDrawCallPeakFrames} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numDrawCallPeakFrames(int value) {
+	public Limits numDrawCallPeakFrames(@Unsigned int value) {
 		VH_NUMDRAWCALLPEAKFRAMES.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Minimum resource command buffer size.
 	 * @return the field value
 	 */
-	public int minResourceCbSize() {
-		return (int) VH_MINRESOURCECBSIZE.get(segment(), 0L);
+	public @Unsigned int minResourceCbSize() {
+		return (@Unsigned int) VH_MINRESOURCECBSIZE.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code minResourceCbSize} field.
+	 * Sets the native {@code minResourceCbSize} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void minResourceCbSize(int value) {
+	public Limits minResourceCbSize(@Unsigned int value) {
 		VH_MINRESOURCECBSIZE.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum transient vertex buffer size.
 	 * @return the field value
 	 */
-	public int maxTransientVbSize() {
-		return (int) VH_MAXTRANSIENTVBSIZE.get(segment(), 0L);
+	public @Unsigned int maxTransientVbSize() {
+		return (@Unsigned int) VH_MAXTRANSIENTVBSIZE.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxTransientVbSize} field.
+	 * Sets the native {@code maxTransientVbSize} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxTransientVbSize(int value) {
+	public Limits maxTransientVbSize(@Unsigned int value) {
 		VH_MAXTRANSIENTVBSIZE.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Maximum transient index buffer size.
 	 * @return the field value
 	 */
-	public int maxTransientIbSize() {
-		return (int) VH_MAXTRANSIENTIBSIZE.get(segment(), 0L);
+	public @Unsigned int maxTransientIbSize() {
+		return (@Unsigned int) VH_MAXTRANSIENTIBSIZE.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxTransientIbSize} field.
+	 * Sets the native {@code maxTransientIbSize} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxTransientIbSize(int value) {
+	public Limits maxTransientIbSize(@Unsigned int value) {
 		VH_MAXTRANSIENTIBSIZE.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Mimimum uniform buffer size.
 	 * @return the field value
 	 */
-	public int minUniformBufferSize() {
-		return (int) VH_MINUNIFORMBUFFERSIZE.get(segment(), 0L);
+	public @Unsigned int minUniformBufferSize() {
+		return (@Unsigned int) VH_MINUNIFORMBUFFERSIZE.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code minUniformBufferSize} field.
+	 * Sets the native {@code minUniformBufferSize} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void minUniformBufferSize(int value) {
+	public Limits minUniformBufferSize(@Unsigned int value) {
 		VH_MINUNIFORMBUFFERSIZE.set(segment(), 0L, value);
+		return this;
 	}
 }

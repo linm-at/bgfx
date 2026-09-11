@@ -8,6 +8,7 @@
 
 package io.github.bkaradzic.bgfx;
 
+import java.lang.AutoCloseable;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
@@ -18,14 +19,17 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.nio.file.Path;
 import java.util.Objects;
-import java.lang.AutoCloseable;
 
-import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import static io.github.bkaradzic.bgfx.BGFX.*;
+import io.github.bkaradzic.bgfx.*;
+import io.github.bkaradzic.bgfx.util.FFMUtil;
+import io.github.bkaradzic.bgfx.util.NativeObject;
+import io.github.bkaradzic.bgfx.util.Unsigned;
+import static io.github.bkaradzic.bgfx.Bgfx.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 
 /**
@@ -191,11 +195,12 @@ public final class Stats extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code cpuTimeFrame} field.
+	 * Sets the native {@code cpuTimeFrame} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void cpuTimeFrame(long value) {
+	public Stats cpuTimeFrame(long value) {
 		VH_CPUTIMEFRAME.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -207,11 +212,12 @@ public final class Stats extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code cpuTimeBegin} field.
+	 * Sets the native {@code cpuTimeBegin} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void cpuTimeBegin(long value) {
+	public Stats cpuTimeBegin(long value) {
 		VH_CPUTIMEBEGIN.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -223,11 +229,12 @@ public final class Stats extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code cpuTimeEnd} field.
+	 * Sets the native {@code cpuTimeEnd} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void cpuTimeEnd(long value) {
+	public Stats cpuTimeEnd(long value) {
 		VH_CPUTIMEEND.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -239,11 +246,12 @@ public final class Stats extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code cpuTimerFreq} field.
+	 * Sets the native {@code cpuTimerFreq} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void cpuTimerFreq(long value) {
+	public Stats cpuTimerFreq(long value) {
 		VH_CPUTIMERFREQ.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -255,11 +263,12 @@ public final class Stats extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code gpuTimeBegin} field.
+	 * Sets the native {@code gpuTimeBegin} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void gpuTimeBegin(long value) {
+	public Stats gpuTimeBegin(long value) {
 		VH_GPUTIMEBEGIN.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -271,11 +280,12 @@ public final class Stats extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code gpuTimeEnd} field.
+	 * Sets the native {@code gpuTimeEnd} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void gpuTimeEnd(long value) {
+	public Stats gpuTimeEnd(long value) {
 		VH_GPUTIMEEND.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -287,11 +297,12 @@ public final class Stats extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code gpuTimerFreq} field.
+	 * Sets the native {@code gpuTimerFreq} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void gpuTimerFreq(long value) {
+	public Stats gpuTimerFreq(long value) {
 		VH_GPUTIMERFREQ.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -303,11 +314,12 @@ public final class Stats extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code waitRender} field.
+	 * Sets the native {@code waitRender} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void waitRender(long value) {
+	public Stats waitRender(long value) {
 		VH_WAITRENDER.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -319,59 +331,63 @@ public final class Stats extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code waitSubmit} field.
+	 * Sets the native {@code waitSubmit} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void waitSubmit(long value) {
+	public Stats waitSubmit(long value) {
 		VH_WAITSUBMIT.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Number of draw calls submitted.
 	 * @return the field value
 	 */
-	public int numDraw() {
-		return (int) VH_NUMDRAW.get(segment(), 0L);
+	public @Unsigned int numDraw() {
+		return (@Unsigned int) VH_NUMDRAW.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numDraw} field.
+	 * Sets the native {@code numDraw} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numDraw(int value) {
+	public Stats numDraw(@Unsigned int value) {
 		VH_NUMDRAW.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Number of compute calls submitted.
 	 * @return the field value
 	 */
-	public int numCompute() {
-		return (int) VH_NUMCOMPUTE.get(segment(), 0L);
+	public @Unsigned int numCompute() {
+		return (@Unsigned int) VH_NUMCOMPUTE.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numCompute} field.
+	 * Sets the native {@code numCompute} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numCompute(int value) {
+	public Stats numCompute(@Unsigned int value) {
 		VH_NUMCOMPUTE.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Number of blit calls submitted.
 	 * @return the field value
 	 */
-	public int numBlit() {
-		return (int) VH_NUMBLIT.get(segment(), 0L);
+	public @Unsigned int numBlit() {
+		return (@Unsigned int) VH_NUMBLIT.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numBlit} field.
+	 * Sets the native {@code numBlit} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numBlit(int value) {
+	public Stats numBlit(@Unsigned int value) {
 		VH_NUMBLIT.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -380,16 +396,17 @@ public final class Stats extends NativeObject {
 	 * {@code Caps.Limits.blitRowPitchAlign} or {@code blitOffsetAlign}.
 	 * @return the field value
 	 */
-	public int numBlitRepack() {
-		return (int) VH_NUMBLITREPACK.get(segment(), 0L);
+	public @Unsigned int numBlitRepack() {
+		return (@Unsigned int) VH_NUMBLITREPACK.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numBlitRepack} field.
+	 * Sets the native {@code numBlitRepack} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numBlitRepack(int value) {
+	public Stats numBlitRepack(@Unsigned int value) {
 		VH_NUMBLITREPACK.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -398,224 +415,326 @@ public final class Stats extends NativeObject {
 	 * to tune {@code Init.Limits.numDrawCalls}.
 	 * @return the field value
 	 */
-	public int numDrawCallsPeak() {
-		return (int) VH_NUMDRAWCALLSPEAK.get(segment(), 0L);
+	public @Unsigned int numDrawCallsPeak() {
+		return (@Unsigned int) VH_NUMDRAWCALLSPEAK.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numDrawCallsPeak} field.
+	 * Sets the native {@code numDrawCallsPeak} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numDrawCallsPeak(int value) {
+	public Stats numDrawCallsPeak(@Unsigned int value) {
 		VH_NUMDRAWCALLSPEAK.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * GPU driver latency.
 	 * @return the field value
 	 */
-	public int maxGpuLatency() {
-		return (int) VH_MAXGPULATENCY.get(segment(), 0L);
+	public @Unsigned int maxGpuLatency() {
+		return (@Unsigned int) VH_MAXGPULATENCY.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code maxGpuLatency} field.
+	 * Sets the native {@code maxGpuLatency} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void maxGpuLatency(int value) {
+	public Stats maxGpuLatency(@Unsigned int value) {
 		VH_MAXGPULATENCY.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Frame which generated gpuTimeBegin, gpuTimeEnd.
 	 * @return the field value
 	 */
-	public int gpuFrameNum() {
-		return (int) VH_GPUFRAMENUM.get(segment(), 0L);
+	public @Unsigned int gpuFrameNum() {
+		return (@Unsigned int) VH_GPUFRAMENUM.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code gpuFrameNum} field.
+	 * Sets the native {@code gpuFrameNum} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void gpuFrameNum(int value) {
+	public Stats gpuFrameNum(@Unsigned int value) {
 		VH_GPUFRAMENUM.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Number of used dynamic index buffers.
 	 * @return the field value
 	 */
-	public short numDynamicIndexBuffers() {
-		return (short) VH_NUMDYNAMICINDEXBUFFERS.get(segment(), 0L);
+	public @Unsigned short numDynamicIndexBuffers() {
+		return (@Unsigned short) VH_NUMDYNAMICINDEXBUFFERS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numDynamicIndexBuffers} field.
+	 * Sets the native {@code numDynamicIndexBuffers} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numDynamicIndexBuffers(short value) {
+	public Stats numDynamicIndexBuffers(@Unsigned short value) {
 		VH_NUMDYNAMICINDEXBUFFERS.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code numDynamicIndexBuffers} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Stats numDynamicIndexBuffers(int value) {
+		return numDynamicIndexBuffers(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Number of used dynamic vertex buffers.
 	 * @return the field value
 	 */
-	public short numDynamicVertexBuffers() {
-		return (short) VH_NUMDYNAMICVERTEXBUFFERS.get(segment(), 0L);
+	public @Unsigned short numDynamicVertexBuffers() {
+		return (@Unsigned short) VH_NUMDYNAMICVERTEXBUFFERS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numDynamicVertexBuffers} field.
+	 * Sets the native {@code numDynamicVertexBuffers} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numDynamicVertexBuffers(short value) {
+	public Stats numDynamicVertexBuffers(@Unsigned short value) {
 		VH_NUMDYNAMICVERTEXBUFFERS.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code numDynamicVertexBuffers} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Stats numDynamicVertexBuffers(int value) {
+		return numDynamicVertexBuffers(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Number of used frame buffers.
 	 * @return the field value
 	 */
-	public short numFrameBuffers() {
-		return (short) VH_NUMFRAMEBUFFERS.get(segment(), 0L);
+	public @Unsigned short numFrameBuffers() {
+		return (@Unsigned short) VH_NUMFRAMEBUFFERS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numFrameBuffers} field.
+	 * Sets the native {@code numFrameBuffers} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numFrameBuffers(short value) {
+	public Stats numFrameBuffers(@Unsigned short value) {
 		VH_NUMFRAMEBUFFERS.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code numFrameBuffers} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Stats numFrameBuffers(int value) {
+		return numFrameBuffers(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Number of used index buffers.
 	 * @return the field value
 	 */
-	public short numIndexBuffers() {
-		return (short) VH_NUMINDEXBUFFERS.get(segment(), 0L);
+	public @Unsigned short numIndexBuffers() {
+		return (@Unsigned short) VH_NUMINDEXBUFFERS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numIndexBuffers} field.
+	 * Sets the native {@code numIndexBuffers} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numIndexBuffers(short value) {
+	public Stats numIndexBuffers(@Unsigned short value) {
 		VH_NUMINDEXBUFFERS.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code numIndexBuffers} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Stats numIndexBuffers(int value) {
+		return numIndexBuffers(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Number of used occlusion queries.
 	 * @return the field value
 	 */
-	public short numOcclusionQueries() {
-		return (short) VH_NUMOCCLUSIONQUERIES.get(segment(), 0L);
+	public @Unsigned short numOcclusionQueries() {
+		return (@Unsigned short) VH_NUMOCCLUSIONQUERIES.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numOcclusionQueries} field.
+	 * Sets the native {@code numOcclusionQueries} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numOcclusionQueries(short value) {
+	public Stats numOcclusionQueries(@Unsigned short value) {
 		VH_NUMOCCLUSIONQUERIES.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code numOcclusionQueries} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Stats numOcclusionQueries(int value) {
+		return numOcclusionQueries(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Number of used programs.
 	 * @return the field value
 	 */
-	public short numPrograms() {
-		return (short) VH_NUMPROGRAMS.get(segment(), 0L);
+	public @Unsigned short numPrograms() {
+		return (@Unsigned short) VH_NUMPROGRAMS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numPrograms} field.
+	 * Sets the native {@code numPrograms} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numPrograms(short value) {
+	public Stats numPrograms(@Unsigned short value) {
 		VH_NUMPROGRAMS.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code numPrograms} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Stats numPrograms(int value) {
+		return numPrograms(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Number of used shaders.
 	 * @return the field value
 	 */
-	public short numShaders() {
-		return (short) VH_NUMSHADERS.get(segment(), 0L);
+	public @Unsigned short numShaders() {
+		return (@Unsigned short) VH_NUMSHADERS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numShaders} field.
+	 * Sets the native {@code numShaders} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numShaders(short value) {
+	public Stats numShaders(@Unsigned short value) {
 		VH_NUMSHADERS.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code numShaders} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Stats numShaders(int value) {
+		return numShaders(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Number of used textures.
 	 * @return the field value
 	 */
-	public short numTextures() {
-		return (short) VH_NUMTEXTURES.get(segment(), 0L);
+	public @Unsigned short numTextures() {
+		return (@Unsigned short) VH_NUMTEXTURES.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numTextures} field.
+	 * Sets the native {@code numTextures} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numTextures(short value) {
+	public Stats numTextures(@Unsigned short value) {
 		VH_NUMTEXTURES.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code numTextures} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Stats numTextures(int value) {
+		return numTextures(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Number of used uniforms.
 	 * @return the field value
 	 */
-	public short numUniforms() {
-		return (short) VH_NUMUNIFORMS.get(segment(), 0L);
+	public @Unsigned short numUniforms() {
+		return (@Unsigned short) VH_NUMUNIFORMS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numUniforms} field.
+	 * Sets the native {@code numUniforms} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numUniforms(short value) {
+	public Stats numUniforms(@Unsigned short value) {
 		VH_NUMUNIFORMS.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code numUniforms} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Stats numUniforms(int value) {
+		return numUniforms(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Number of used vertex buffers.
 	 * @return the field value
 	 */
-	public short numVertexBuffers() {
-		return (short) VH_NUMVERTEXBUFFERS.get(segment(), 0L);
+	public @Unsigned short numVertexBuffers() {
+		return (@Unsigned short) VH_NUMVERTEXBUFFERS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numVertexBuffers} field.
+	 * Sets the native {@code numVertexBuffers} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numVertexBuffers(short value) {
+	public Stats numVertexBuffers(@Unsigned short value) {
 		VH_NUMVERTEXBUFFERS.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code numVertexBuffers} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Stats numVertexBuffers(int value) {
+		return numVertexBuffers(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Number of used vertex layouts.
 	 * @return the field value
 	 */
-	public short numVertexLayouts() {
-		return (short) VH_NUMVERTEXLAYOUTS.get(segment(), 0L);
+	public @Unsigned short numVertexLayouts() {
+		return (@Unsigned short) VH_NUMVERTEXLAYOUTS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numVertexLayouts} field.
+	 * Sets the native {@code numVertexLayouts} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numVertexLayouts(short value) {
+	public Stats numVertexLayouts(@Unsigned short value) {
 		VH_NUMVERTEXLAYOUTS.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code numVertexLayouts} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Stats numVertexLayouts(int value) {
+		return numVertexLayouts(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
@@ -627,11 +746,12 @@ public final class Stats extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code textureMemoryUsed} field.
+	 * Sets the native {@code textureMemoryUsed} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void textureMemoryUsed(long value) {
+	public Stats textureMemoryUsed(long value) {
 		VH_TEXTUREMEMORYUSED.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -643,11 +763,12 @@ public final class Stats extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code rtMemoryUsed} field.
+	 * Sets the native {@code rtMemoryUsed} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void rtMemoryUsed(long value) {
+	public Stats rtMemoryUsed(long value) {
 		VH_RTMEMORYUSED.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -659,11 +780,12 @@ public final class Stats extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code transientVbUsed} field.
+	 * Sets the native {@code transientVbUsed} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void transientVbUsed(int value) {
+	public Stats transientVbUsed(int value) {
 		VH_TRANSIENTVBUSED.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -675,11 +797,12 @@ public final class Stats extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code transientIbUsed} field.
+	 * Sets the native {@code transientIbUsed} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void transientIbUsed(int value) {
+	public Stats transientIbUsed(int value) {
 		VH_TRANSIENTIBUSED.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -699,11 +822,12 @@ public final class Stats extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code gpuMemoryMax} field.
+	 * Sets the native {@code gpuMemoryMax} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void gpuMemoryMax(long value) {
+	public Stats gpuMemoryMax(long value) {
 		VH_GPUMEMORYMAX.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -715,91 +839,137 @@ public final class Stats extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code gpuMemoryUsed} field.
+	 * Sets the native {@code gpuMemoryUsed} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void gpuMemoryUsed(long value) {
+	public Stats gpuMemoryUsed(long value) {
 		VH_GPUMEMORYUSED.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Backbuffer width in pixels.
 	 * @return the field value
 	 */
-	public short width() {
-		return (short) VH_WIDTH.get(segment(), 0L);
+	public @Unsigned short width() {
+		return (@Unsigned short) VH_WIDTH.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code width} field.
+	 * Sets the native {@code width} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void width(short value) {
+	public Stats width(@Unsigned short value) {
 		VH_WIDTH.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code width} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Stats width(int value) {
+		return width(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Backbuffer height in pixels.
 	 * @return the field value
 	 */
-	public short height() {
-		return (short) VH_HEIGHT.get(segment(), 0L);
+	public @Unsigned short height() {
+		return (@Unsigned short) VH_HEIGHT.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code height} field.
+	 * Sets the native {@code height} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void height(short value) {
+	public Stats height(@Unsigned short value) {
 		VH_HEIGHT.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code height} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Stats height(int value) {
+		return height(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Debug text width in characters.
 	 * @return the field value
 	 */
-	public short textWidth() {
-		return (short) VH_TEXTWIDTH.get(segment(), 0L);
+	public @Unsigned short textWidth() {
+		return (@Unsigned short) VH_TEXTWIDTH.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code textWidth} field.
+	 * Sets the native {@code textWidth} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void textWidth(short value) {
+	public Stats textWidth(@Unsigned short value) {
 		VH_TEXTWIDTH.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code textWidth} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Stats textWidth(int value) {
+		return textWidth(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Debug text height in characters.
 	 * @return the field value
 	 */
-	public short textHeight() {
-		return (short) VH_TEXTHEIGHT.get(segment(), 0L);
+	public @Unsigned short textHeight() {
+		return (@Unsigned short) VH_TEXTHEIGHT.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code textHeight} field.
+	 * Sets the native {@code textHeight} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void textHeight(short value) {
+	public Stats textHeight(@Unsigned short value) {
 		VH_TEXTHEIGHT.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code textHeight} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Stats textHeight(int value) {
+		return textHeight(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Number of view stats.
 	 * @return the field value
 	 */
-	public short numViews() {
-		return (short) VH_NUMVIEWS.get(segment(), 0L);
+	public @Unsigned short numViews() {
+		return (@Unsigned short) VH_NUMVIEWS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numViews} field.
+	 * Sets the native {@code numViews} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numViews(short value) {
+	public Stats numViews(@Unsigned short value) {
 		VH_NUMVIEWS.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code numViews} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Stats numViews(int value) {
+		return numViews(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
@@ -811,27 +981,37 @@ public final class Stats extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code viewStats} field.
+	 * Sets the native {@code viewStats} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void viewStats(ViewStats value) {
+	public Stats viewStats(ViewStats value) {
 		VH_VIEWSTATS.set(segment(), 0L, address(value));
+		return this;
 	}
 
 	/**
 	 * Number of encoders used during frame.
 	 * @return the field value
 	 */
-	public byte numEncoders() {
-		return (byte) VH_NUMENCODERS.get(segment(), 0L);
+	public @Unsigned byte numEncoders() {
+		return (@Unsigned byte) VH_NUMENCODERS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numEncoders} field.
+	 * Sets the native {@code numEncoders} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numEncoders(byte value) {
+	public Stats numEncoders(@Unsigned byte value) {
 		VH_NUMENCODERS.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code numEncoders} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Stats numEncoders(int value) {
+		return numEncoders(NativeObject.toUnsignedByte(value));
 	}
 
 	/**
@@ -843,10 +1023,11 @@ public final class Stats extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code encoderStats} field.
+	 * Sets the native {@code encoderStats} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void encoderStats(EncoderStats value) {
+	public Stats encoderStats(EncoderStats value) {
 		VH_ENCODERSTATS.set(segment(), 0L, address(value));
+		return this;
 	}
 }

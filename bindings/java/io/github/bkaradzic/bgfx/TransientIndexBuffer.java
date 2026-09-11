@@ -8,6 +8,7 @@
 
 package io.github.bkaradzic.bgfx;
 
+import java.lang.AutoCloseable;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
@@ -18,14 +19,17 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.nio.file.Path;
 import java.util.Objects;
-import java.lang.AutoCloseable;
 
-import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import static io.github.bkaradzic.bgfx.BGFX.*;
+import io.github.bkaradzic.bgfx.*;
+import io.github.bkaradzic.bgfx.util.FFMUtil;
+import io.github.bkaradzic.bgfx.util.NativeObject;
+import io.github.bkaradzic.bgfx.util.Unsigned;
+import static io.github.bkaradzic.bgfx.Bgfx.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 
 /**
@@ -77,43 +81,54 @@ public final class TransientIndexBuffer extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code data} field.
+	 * Sets the native {@code data} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void data(MemorySegment value) {
+	public TransientIndexBuffer data(MemorySegment value) {
 		VH_DATA.set(segment(), 0L, address(value));
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code data} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public TransientIndexBuffer data(int value) {
+		return data(NativeObject.toUnsignedByte(value));
 	}
 
 	/**
 	 * Data size.
 	 * @return the field value
 	 */
-	public int size() {
-		return (int) VH_SIZE.get(segment(), 0L);
+	public @Unsigned int size() {
+		return (@Unsigned int) VH_SIZE.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code size} field.
+	 * Sets the native {@code size} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void size(int value) {
+	public TransientIndexBuffer size(@Unsigned int value) {
 		VH_SIZE.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * First index.
 	 * @return the field value
 	 */
-	public int startIndex() {
-		return (int) VH_STARTINDEX.get(segment(), 0L);
+	public @Unsigned int startIndex() {
+		return (@Unsigned int) VH_STARTINDEX.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code startIndex} field.
+	 * Sets the native {@code startIndex} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void startIndex(int value) {
+	public TransientIndexBuffer startIndex(@Unsigned int value) {
 		VH_STARTINDEX.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -125,11 +140,12 @@ public final class TransientIndexBuffer extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code handle} field.
+	 * Sets the native {@code handle} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void handle(IndexBufferHandle value) {
+	public TransientIndexBuffer handle(IndexBufferHandle value) {
 		value.write(slice(MH_HANDLE, segment()));
+		return this;
 	}
 
 	/**
@@ -141,10 +157,11 @@ public final class TransientIndexBuffer extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code isIndex16} field.
+	 * Sets the native {@code isIndex16} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void isIndex16(boolean value) {
+	public TransientIndexBuffer isIndex16(boolean value) {
 		VH_ISINDEX16.set(segment(), 0L, value);
+		return this;
 	}
 }

@@ -8,6 +8,7 @@
 
 package io.github.bkaradzic.bgfx;
 
+import java.lang.AutoCloseable;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
@@ -18,14 +19,17 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.nio.file.Path;
 import java.util.Objects;
-import java.lang.AutoCloseable;
 
-import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import static io.github.bkaradzic.bgfx.BGFX.*;
+import io.github.bkaradzic.bgfx.*;
+import io.github.bkaradzic.bgfx.util.FFMUtil;
+import io.github.bkaradzic.bgfx.util.NativeObject;
+import io.github.bkaradzic.bgfx.util.Unsigned;
+import static io.github.bkaradzic.bgfx.Bgfx.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 
 /**
@@ -89,123 +93,179 @@ public final class TextureInfo extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code format} field.
+	 * Sets the native {@code format} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void format(TextureFormat value) {
+	public TextureInfo format(TextureFormat value) {
 		VH_FORMAT.set(segment(), 0L, value.ordinal());
+		return this;
 	}
 
 	/**
 	 * Total amount of bytes required to store texture.
 	 * @return the field value
 	 */
-	public int storageSize() {
-		return (int) VH_STORAGESIZE.get(segment(), 0L);
+	public @Unsigned int storageSize() {
+		return (@Unsigned int) VH_STORAGESIZE.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code storageSize} field.
+	 * Sets the native {@code storageSize} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void storageSize(int value) {
+	public TextureInfo storageSize(@Unsigned int value) {
 		VH_STORAGESIZE.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Texture width.
 	 * @return the field value
 	 */
-	public short width() {
-		return (short) VH_WIDTH.get(segment(), 0L);
+	public @Unsigned short width() {
+		return (@Unsigned short) VH_WIDTH.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code width} field.
+	 * Sets the native {@code width} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void width(short value) {
+	public TextureInfo width(@Unsigned short value) {
 		VH_WIDTH.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code width} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public TextureInfo width(int value) {
+		return width(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Texture height.
 	 * @return the field value
 	 */
-	public short height() {
-		return (short) VH_HEIGHT.get(segment(), 0L);
+	public @Unsigned short height() {
+		return (@Unsigned short) VH_HEIGHT.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code height} field.
+	 * Sets the native {@code height} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void height(short value) {
+	public TextureInfo height(@Unsigned short value) {
 		VH_HEIGHT.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code height} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public TextureInfo height(int value) {
+		return height(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Texture depth.
 	 * @return the field value
 	 */
-	public short depth() {
-		return (short) VH_DEPTH.get(segment(), 0L);
+	public @Unsigned short depth() {
+		return (@Unsigned short) VH_DEPTH.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code depth} field.
+	 * Sets the native {@code depth} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void depth(short value) {
+	public TextureInfo depth(@Unsigned short value) {
 		VH_DEPTH.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code depth} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public TextureInfo depth(int value) {
+		return depth(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Number of layers in texture array.
 	 * @return the field value
 	 */
-	public short numLayers() {
-		return (short) VH_NUMLAYERS.get(segment(), 0L);
+	public @Unsigned short numLayers() {
+		return (@Unsigned short) VH_NUMLAYERS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numLayers} field.
+	 * Sets the native {@code numLayers} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numLayers(short value) {
+	public TextureInfo numLayers(@Unsigned short value) {
 		VH_NUMLAYERS.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code numLayers} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public TextureInfo numLayers(int value) {
+		return numLayers(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Number of MIP maps.
 	 * @return the field value
 	 */
-	public byte numMips() {
-		return (byte) VH_NUMMIPS.get(segment(), 0L);
+	public @Unsigned byte numMips() {
+		return (@Unsigned byte) VH_NUMMIPS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numMips} field.
+	 * Sets the native {@code numMips} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numMips(byte value) {
+	public TextureInfo numMips(@Unsigned byte value) {
 		VH_NUMMIPS.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code numMips} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public TextureInfo numMips(int value) {
+		return numMips(NativeObject.toUnsignedByte(value));
 	}
 
 	/**
 	 * Format bits per pixel.
 	 * @return the field value
 	 */
-	public byte bitsPerPixel() {
-		return (byte) VH_BITSPERPIXEL.get(segment(), 0L);
+	public @Unsigned byte bitsPerPixel() {
+		return (@Unsigned byte) VH_BITSPERPIXEL.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code bitsPerPixel} field.
+	 * Sets the native {@code bitsPerPixel} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void bitsPerPixel(byte value) {
+	public TextureInfo bitsPerPixel(@Unsigned byte value) {
 		VH_BITSPERPIXEL.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code bitsPerPixel} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public TextureInfo bitsPerPixel(int value) {
+		return bitsPerPixel(NativeObject.toUnsignedByte(value));
 	}
 
 	/**
@@ -217,10 +277,11 @@ public final class TextureInfo extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code cubeMap} field.
+	 * Sets the native {@code cubeMap} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void cubeMap(boolean value) {
+	public TextureInfo cubeMap(boolean value) {
 		VH_CUBEMAP.set(segment(), 0L, value);
+		return this;
 	}
 }

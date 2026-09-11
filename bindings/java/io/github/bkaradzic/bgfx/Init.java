@@ -8,6 +8,7 @@
 
 package io.github.bkaradzic.bgfx;
 
+import java.lang.AutoCloseable;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
@@ -18,14 +19,17 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.nio.file.Path;
 import java.util.Objects;
-import java.lang.AutoCloseable;
 
-import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import static io.github.bkaradzic.bgfx.BGFX.*;
+import io.github.bkaradzic.bgfx.*;
+import io.github.bkaradzic.bgfx.util.FFMUtil;
+import io.github.bkaradzic.bgfx.util.NativeObject;
+import io.github.bkaradzic.bgfx.util.Unsigned;
+import static io.github.bkaradzic.bgfx.Bgfx.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 
 /**
@@ -103,11 +107,12 @@ public final class Init extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code type} field.
+	 * Sets the native {@code type} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void type(RendererType value) {
+	public Init type(RendererType value) {
 		VH_TYPE.set(segment(), 0L, value.ordinal());
+		return this;
 	}
 
 	/**
@@ -122,16 +127,25 @@ public final class Init extends NativeObject {
 	 *   - {@code BGFX_PCI_ID_MICROSOFT} - Microsoft adapter.
 	 * @return the field value
 	 */
-	public short vendorId() {
-		return (short) VH_VENDORID.get(segment(), 0L);
+	public @Unsigned short vendorId() {
+		return (@Unsigned short) VH_VENDORID.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code vendorId} field.
+	 * Sets the native {@code vendorId} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void vendorId(short value) {
+	public Init vendorId(@Unsigned short value) {
 		VH_VENDORID.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code vendorId} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Init vendorId(int value) {
+		return vendorId(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
@@ -139,32 +153,42 @@ public final class Init extends NativeObject {
 	 * matching ID.
 	 * @return the field value
 	 */
-	public short deviceId() {
-		return (short) VH_DEVICEID.get(segment(), 0L);
+	public @Unsigned short deviceId() {
+		return (@Unsigned short) VH_DEVICEID.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code deviceId} field.
+	 * Sets the native {@code deviceId} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void deviceId(short value) {
+	public Init deviceId(@Unsigned short value) {
 		VH_DEVICEID.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code deviceId} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Init deviceId(int value) {
+		return deviceId(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Capabilities initialization mask (default: UINT64_MAX).
 	 * @return the field value
 	 */
-	public long capabilities() {
-		return (long) VH_CAPABILITIES.get(segment(), 0L);
+	public @Unsigned long capabilities() {
+		return (@Unsigned long) VH_CAPABILITIES.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code capabilities} field.
+	 * Sets the native {@code capabilities} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void capabilities(long value) {
+	public Init capabilities(@Unsigned long value) {
 		VH_CAPABILITIES.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -176,11 +200,12 @@ public final class Init extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code debug} field.
+	 * Sets the native {@code debug} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void debug(boolean value) {
+	public Init debug(boolean value) {
 		VH_DEBUG.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -192,11 +217,12 @@ public final class Init extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code profile} field.
+	 * Sets the native {@code profile} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void profile(boolean value) {
+	public Init profile(boolean value) {
 		VH_PROFILE.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -208,11 +234,12 @@ public final class Init extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code fallback} field.
+	 * Sets the native {@code fallback} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void fallback(boolean value) {
+	public Init fallback(boolean value) {
 		VH_FALLBACK.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -224,11 +251,12 @@ public final class Init extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code videoDecode} field.
+	 * Sets the native {@code videoDecode} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void videoDecode(boolean value) {
+	public Init videoDecode(boolean value) {
 		VH_VIDEODECODE.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -240,11 +268,12 @@ public final class Init extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code platformData} field.
+	 * Sets the native {@code platformData} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void platformData(PlatformData value) {
+	public Init platformData(PlatformData value) {
 		slice(MH_PLATFORMDATA, segment()).copyFrom(value.segment());
+		return this;
 	}
 
 	/**
@@ -256,11 +285,12 @@ public final class Init extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code resolution} field.
+	 * Sets the native {@code resolution} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void resolution(Resolution value) {
+	public Init resolution(Resolution value) {
 		slice(MH_RESOLUTION, segment()).copyFrom(value.segment());
+		return this;
 	}
 
 	/**
@@ -272,11 +302,12 @@ public final class Init extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code limits} field.
+	 * Sets the native {@code limits} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void limits(io.github.bkaradzic.bgfx.init.Limits value) {
+	public Init limits(io.github.bkaradzic.bgfx.init.Limits value) {
 		slice(MH_LIMITS, segment()).copyFrom(value.segment());
+		return this;
 	}
 
 	/**
@@ -289,11 +320,12 @@ public final class Init extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code callback} field.
+	 * Sets the native {@code callback} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void callback(MemorySegment value) {
+	public Init callback(MemorySegment value) {
 		VH_CALLBACK.set(segment(), 0L, address(value));
+		return this;
 	}
 
 	/**
@@ -307,10 +339,11 @@ public final class Init extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code allocator} field.
+	 * Sets the native {@code allocator} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void allocator(MemorySegment value) {
+	public Init allocator(MemorySegment value) {
 		VH_ALLOCATOR.set(segment(), 0L, address(value));
+		return this;
 	}
 }

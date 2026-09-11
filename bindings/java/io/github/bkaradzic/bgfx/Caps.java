@@ -8,6 +8,7 @@
 
 package io.github.bkaradzic.bgfx;
 
+import java.lang.AutoCloseable;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
@@ -18,14 +19,17 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.nio.file.Path;
 import java.util.Objects;
-import java.lang.AutoCloseable;
 
-import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import static io.github.bkaradzic.bgfx.BGFX.*;
+import io.github.bkaradzic.bgfx.*;
+import io.github.bkaradzic.bgfx.util.FFMUtil;
+import io.github.bkaradzic.bgfx.util.NativeObject;
+import io.github.bkaradzic.bgfx.util.Unsigned;
+import static io.github.bkaradzic.bgfx.Bgfx.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 
 /**
@@ -95,11 +99,12 @@ public final class Caps extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code rendererType} field.
+	 * Sets the native {@code rendererType} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void rendererType(RendererType value) {
+	public Caps rendererType(RendererType value) {
 		VH_RENDERERTYPE.set(segment(), 0L, value.ordinal());
+		return this;
 	}
 
 	/**
@@ -107,48 +112,67 @@ public final class Caps extends NativeObject {
 	 * <strong>Attention:</strong> See {@code BGFX_CAPS_*} flags at https://bkaradzic.github.io/bgfx/bgfx.html#available-caps
 	 * @return the field value
 	 */
-	public long supported() {
-		return (long) VH_SUPPORTED.get(segment(), 0L);
+	public @Unsigned long supported() {
+		return (@Unsigned long) VH_SUPPORTED.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code supported} field.
+	 * Sets the native {@code supported} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void supported(long value) {
+	public Caps supported(@Unsigned long value) {
 		VH_SUPPORTED.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Selected GPU vendor PCI id.
 	 * @return the field value
 	 */
-	public short vendorId() {
-		return (short) VH_VENDORID.get(segment(), 0L);
+	public @Unsigned short vendorId() {
+		return (@Unsigned short) VH_VENDORID.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code vendorId} field.
+	 * Sets the native {@code vendorId} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void vendorId(short value) {
+	public Caps vendorId(@Unsigned short value) {
 		VH_VENDORID.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code vendorId} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Caps vendorId(int value) {
+		return vendorId(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Selected GPU device id.
 	 * @return the field value
 	 */
-	public short deviceId() {
-		return (short) VH_DEVICEID.get(segment(), 0L);
+	public @Unsigned short deviceId() {
+		return (@Unsigned short) VH_DEVICEID.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code deviceId} field.
+	 * Sets the native {@code deviceId} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void deviceId(short value) {
+	public Caps deviceId(@Unsigned short value) {
 		VH_DEVICEID.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code deviceId} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Caps deviceId(int value) {
+		return deviceId(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
@@ -160,11 +184,12 @@ public final class Caps extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code homogeneousDepth} field.
+	 * Sets the native {@code homogeneousDepth} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void homogeneousDepth(boolean value) {
+	public Caps homogeneousDepth(boolean value) {
 		VH_HOMOGENEOUSDEPTH.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -176,27 +201,37 @@ public final class Caps extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code originBottomLeft} field.
+	 * Sets the native {@code originBottomLeft} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void originBottomLeft(boolean value) {
+	public Caps originBottomLeft(boolean value) {
 		VH_ORIGINBOTTOMLEFT.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Number of enumerated GPUs.
 	 * @return the field value
 	 */
-	public byte numGPUs() {
-		return (byte) VH_NUMGPUS.get(segment(), 0L);
+	public @Unsigned byte numGPUs() {
+		return (@Unsigned byte) VH_NUMGPUS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numGPUs} field.
+	 * Sets the native {@code numGPUs} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numGPUs(byte value) {
+	public Caps numGPUs(@Unsigned byte value) {
 		VH_NUMGPUS.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code numGPUs} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Caps numGPUs(int value) {
+		return numGPUs(NativeObject.toUnsignedByte(value));
 	}
 
 	/**
@@ -216,11 +251,12 @@ public final class Caps extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code limits} field.
+	 * Sets the native {@code limits} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void limits(io.github.bkaradzic.bgfx.caps.Limits value) {
+	public Caps limits(io.github.bkaradzic.bgfx.caps.Limits value) {
 		slice(MH_LIMITS, segment()).copyFrom(value.segment());
+		return this;
 	}
 
 	/**

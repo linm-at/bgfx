@@ -8,6 +8,7 @@
 
 package io.github.bkaradzic.bgfx;
 
+import java.lang.AutoCloseable;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
@@ -18,14 +19,17 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.nio.file.Path;
 import java.util.Objects;
-import java.lang.AutoCloseable;
 
-import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import static io.github.bkaradzic.bgfx.BGFX.*;
+import io.github.bkaradzic.bgfx.*;
+import io.github.bkaradzic.bgfx.util.FFMUtil;
+import io.github.bkaradzic.bgfx.util.NativeObject;
+import io.github.bkaradzic.bgfx.util.Unsigned;
+import static io.github.bkaradzic.bgfx.Bgfx.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 
 /**
@@ -79,26 +83,36 @@ public final class UniformInfo extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code type} field.
+	 * Sets the native {@code type} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void type(UniformType value) {
+	public UniformInfo type(UniformType value) {
 		VH_TYPE.set(segment(), 0L, value.ordinal());
+		return this;
 	}
 
 	/**
 	 * Number of elements in array.
 	 * @return the field value
 	 */
-	public short num() {
-		return (short) VH_NUM.get(segment(), 0L);
+	public @Unsigned short num() {
+		return (@Unsigned short) VH_NUM.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code num} field.
+	 * Sets the native {@code num} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void num(short value) {
+	public UniformInfo num(@Unsigned short value) {
 		VH_NUM.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code num} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public UniformInfo num(int value) {
+		return num(NativeObject.toUnsignedShort(value));
 	}
 }

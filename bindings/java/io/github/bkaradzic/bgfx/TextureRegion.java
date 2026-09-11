@@ -8,6 +8,7 @@
 
 package io.github.bkaradzic.bgfx;
 
+import java.lang.AutoCloseable;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
@@ -18,14 +19,17 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.nio.file.Path;
 import java.util.Objects;
-import java.lang.AutoCloseable;
 
-import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import static io.github.bkaradzic.bgfx.BGFX.*;
+import io.github.bkaradzic.bgfx.*;
+import io.github.bkaradzic.bgfx.util.FFMUtil;
+import io.github.bkaradzic.bgfx.util.NativeObject;
+import io.github.bkaradzic.bgfx.util.Unsigned;
+import static io.github.bkaradzic.bgfx.Bgfx.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 
 /**
@@ -90,59 +94,87 @@ public final class TextureRegion extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code handle} field.
+	 * Sets the native {@code handle} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void handle(TextureHandle value) {
+	public TextureRegion handle(TextureHandle value) {
 		value.write(slice(MH_HANDLE, segment()));
+		return this;
 	}
 
 	/**
 	 * Mip level.
 	 * @return the field value
 	 */
-	public byte mip() {
-		return (byte) VH_MIP.get(segment(), 0L);
+	public @Unsigned byte mip() {
+		return (@Unsigned byte) VH_MIP.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code mip} field.
+	 * Sets the native {@code mip} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void mip(byte value) {
+	public TextureRegion mip(@Unsigned byte value) {
 		VH_MIP.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code mip} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public TextureRegion mip(int value) {
+		return mip(NativeObject.toUnsignedByte(value));
 	}
 
 	/**
 	 * X position of the region.
 	 * @return the field value
 	 */
-	public short x() {
-		return (short) VH_X.get(segment(), 0L);
+	public @Unsigned short x() {
+		return (@Unsigned short) VH_X.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code x} field.
+	 * Sets the native {@code x} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void x(short value) {
+	public TextureRegion x(@Unsigned short value) {
 		VH_X.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code x} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public TextureRegion x(int value) {
+		return x(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Y position of the region.
 	 * @return the field value
 	 */
-	public short y() {
-		return (short) VH_Y.get(segment(), 0L);
+	public @Unsigned short y() {
+		return (@Unsigned short) VH_Y.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code y} field.
+	 * Sets the native {@code y} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void y(short value) {
+	public TextureRegion y(@Unsigned short value) {
 		VH_Y.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code y} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public TextureRegion y(int value) {
+		return y(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
@@ -151,48 +183,75 @@ public final class TextureRegion extends NativeObject {
 	 * 3D texture it is the Z position.
 	 * @return the field value
 	 */
-	public short z() {
-		return (short) VH_Z.get(segment(), 0L);
+	public @Unsigned short z() {
+		return (@Unsigned short) VH_Z.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code z} field.
+	 * Sets the native {@code z} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void z(short value) {
+	public TextureRegion z(@Unsigned short value) {
 		VH_Z.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code z} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public TextureRegion z(int value) {
+		return z(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Width of the region. 0 uses the rest of the mip from {@code x}.
 	 * @return the field value
 	 */
-	public short width() {
-		return (short) VH_WIDTH.get(segment(), 0L);
+	public @Unsigned short width() {
+		return (@Unsigned short) VH_WIDTH.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code width} field.
+	 * Sets the native {@code width} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void width(short value) {
+	public TextureRegion width(@Unsigned short value) {
 		VH_WIDTH.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code width} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public TextureRegion width(int value) {
+		return width(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
 	 * Height of the region. 0 uses the rest of the mip from {@code y}.
 	 * @return the field value
 	 */
-	public short height() {
-		return (short) VH_HEIGHT.get(segment(), 0L);
+	public @Unsigned short height() {
+		return (@Unsigned short) VH_HEIGHT.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code height} field.
+	 * Sets the native {@code height} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void height(short value) {
+	public TextureRegion height(@Unsigned short value) {
 		VH_HEIGHT.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code height} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public TextureRegion height(int value) {
+		return height(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
@@ -200,16 +259,25 @@ public final class TextureRegion extends NativeObject {
 	 * cube faces otherwise. 0 uses the rest from {@code z}.
 	 * @return the field value
 	 */
-	public short depth() {
-		return (short) VH_DEPTH.get(segment(), 0L);
+	public @Unsigned short depth() {
+		return (@Unsigned short) VH_DEPTH.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code depth} field.
+	 * Sets the native {@code depth} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void depth(short value) {
+	public TextureRegion depth(@Unsigned short value) {
 		VH_DEPTH.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code depth} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public TextureRegion depth(int value) {
+		return depth(NativeObject.toUnsignedShort(value));
 	}
 
 	/**
@@ -221,7 +289,7 @@ public final class TextureRegion extends NativeObject {
 	 * @param _width Width of the region. 0 uses the rest of the mip from {@code _x}.
 	 * @param _height Height of the region. 0 uses the rest of the mip from {@code _y}.
 	 */
-	public final void init(TextureHandle _handle, short _x, short _y, short _width, short _height) {
+	public final void init(TextureHandle _handle, @Unsigned short _x, @Unsigned short _y, @Unsigned short _width, @Unsigned short _height) {
 		try {
 			try (Arena arena = Arena.ofConfined()) {
 				MH_TEXTURE_REGION_INIT.invokeExact(segment(), _handle.allocate(arena), _x, _y, _width, _height);

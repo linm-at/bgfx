@@ -8,6 +8,7 @@
 
 package io.github.bkaradzic.bgfx;
 
+import java.lang.AutoCloseable;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
@@ -18,14 +19,17 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.nio.file.Path;
 import java.util.Objects;
-import java.lang.AutoCloseable;
 
-import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import static io.github.bkaradzic.bgfx.BGFX.*;
+import io.github.bkaradzic.bgfx.*;
+import io.github.bkaradzic.bgfx.util.FFMUtil;
+import io.github.bkaradzic.bgfx.util.NativeObject;
+import io.github.bkaradzic.bgfx.util.Unsigned;
+import static io.github.bkaradzic.bgfx.Bgfx.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 
 /**
@@ -89,16 +93,17 @@ public final class VideoDecoderFrame extends NativeObject {
 	 * Structure magic. Must be {@code BX_MAKEFOURCC('V', 'D', 'F', 0x0)}.
 	 * @return the field value
 	 */
-	public int magic() {
-		return (int) VH_MAGIC.get(segment(), 0L);
+	public @Unsigned int magic() {
+		return (@Unsigned int) VH_MAGIC.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code magic} field.
+	 * Sets the native {@code magic} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void magic(int value) {
+	public VideoDecoderFrame magic(@Unsigned int value) {
 		VH_MAGIC.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -110,11 +115,20 @@ public final class VideoDecoderFrame extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code bitstream} field.
+	 * Sets the native {@code bitstream} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void bitstream(MemorySegment value) {
+	public VideoDecoderFrame bitstream(MemorySegment value) {
 		VH_BITSTREAM.set(segment(), 0L, address(value));
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code bitstream} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public VideoDecoderFrame bitstream(int value) {
+		return bitstream(NativeObject.toUnsignedByte(value));
 	}
 
 	/**
@@ -126,27 +140,29 @@ public final class VideoDecoderFrame extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code aus} field.
+	 * Sets the native {@code aus} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void aus(VideoDecoderAu value) {
+	public VideoDecoderFrame aus(VideoDecoderAu value) {
 		VH_AUS.set(segment(), 0L, address(value));
+		return this;
 	}
 
 	/**
 	 * Number of access units in this batch. 0 for presentation-only ticks.
 	 * @return the field value
 	 */
-	public int numAus() {
-		return (int) VH_NUMAUS.get(segment(), 0L);
+	public @Unsigned int numAus() {
+		return (@Unsigned int) VH_NUMAUS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code numAus} field.
+	 * Sets the native {@code numAus} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void numAus(int value) {
+	public VideoDecoderFrame numAus(@Unsigned int value) {
 		VH_NUMAUS.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
@@ -159,26 +175,36 @@ public final class VideoDecoderFrame extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code presentationTimeUs} field.
+	 * Sets the native {@code presentationTimeUs} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void presentationTimeUs(long value) {
+	public VideoDecoderFrame presentationTimeUs(long value) {
 		VH_PRESENTATIONTIMEUS.set(segment(), 0L, value);
+		return this;
 	}
 
 	/**
 	 * Per-frame submission flags. See: {@code BGFX_VIDEO_DECODE_FRAME_*}.
 	 * @return the field value
 	 */
-	public byte flags() {
-		return (byte) VH_FLAGS.get(segment(), 0L);
+	public @Unsigned byte flags() {
+		return (@Unsigned byte) VH_FLAGS.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code flags} field.
+	 * Sets the native {@code flags} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void flags(byte value) {
+	public VideoDecoderFrame flags(@Unsigned byte value) {
 		VH_FLAGS.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code flags} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public VideoDecoderFrame flags(int value) {
+		return flags(NativeObject.toUnsignedByte(value));
 	}
 }

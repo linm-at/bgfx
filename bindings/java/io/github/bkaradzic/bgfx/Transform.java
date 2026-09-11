@@ -8,6 +8,7 @@
 
 package io.github.bkaradzic.bgfx;
 
+import java.lang.AutoCloseable;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryLayout;
@@ -18,14 +19,17 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.VarHandle;
+import java.nio.file.Path;
 import java.util.Objects;
-import java.lang.AutoCloseable;
 
-import io.github.bkaradzic.bgfx.util.NativeObject;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import static io.github.bkaradzic.bgfx.BGFX.*;
+import io.github.bkaradzic.bgfx.*;
+import io.github.bkaradzic.bgfx.util.FFMUtil;
+import io.github.bkaradzic.bgfx.util.NativeObject;
+import io.github.bkaradzic.bgfx.util.Unsigned;
+import static io.github.bkaradzic.bgfx.Bgfx.*;
 import static io.github.bkaradzic.bgfx.util.FFMUtil.*;
 
 /**
@@ -68,26 +72,36 @@ public final class Transform extends NativeObject {
 	}
 
 	/**
-	 * Sets the native {@code data} field.
+	 * Sets the native {@code data} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void data(MemorySegment value) {
+	public Transform data(MemorySegment value) {
 		VH_DATA.set(segment(), 0L, address(value));
+		return this;
 	}
 
 	/**
 	 * Number of matrices.
 	 * @return the field value
 	 */
-	public short num() {
-		return (short) VH_NUM.get(segment(), 0L);
+	public @Unsigned short num() {
+		return (@Unsigned short) VH_NUM.get(segment(), 0L);
 	}
 
 	/**
-	 * Sets the native {@code num} field.
+	 * Sets the native {@code num} field and returns {@code this}.
 	 * @param value the new field value
 	 */
-	public void num(short value) {
+	public Transform num(@Unsigned short value) {
 		VH_NUM.set(segment(), 0L, value);
+		return this;
+	}
+
+	/**
+	 * Sets the native {@code num} field and returns {@code this}.
+	 * @param value the new field value
+	 */
+	public Transform num(int value) {
+		return num(NativeObject.toUnsignedShort(value));
 	}
 }
